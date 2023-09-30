@@ -1,0 +1,13 @@
+{
+  "FolderOrderSettings": [
+    {"name":"glTF Load","order":7,"path":"folders/glTF Load.yy",},
+    {"name":"Scripts","order":1,"path":"folders/glTF Load/Scripts.yy",},
+    {"name":"Shaders","order":3,"path":"folders/glTF Load/Shaders.yy",},
+    {"name":"Textures","order":2,"path":"folders/glTF Load/Textures.yy",},
+    {"name":"Test","order":8,"path":"folders/Test.yy",},
+  ],
+  "ResourceOrderSettings": [
+    {"name":"spr_normal","order":1,"path":"sprites/spr_normal/spr_normal.yy",},
+    {"name":"dec_to_hex","order":1,"path":"scripts/dec_to_hex/dec_to_hex.yy",},
+  ],
+}
