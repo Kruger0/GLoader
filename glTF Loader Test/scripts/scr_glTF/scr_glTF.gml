@@ -100,9 +100,10 @@
 
 // Group of vertes buffers
 function GMesh(_model = undefined) constructor {
-	model		= _model;
-	vbuffer		= undefined;
-	material	= undefined
+	model			= _model;
+	vbuffer			= undefined;
+	material		= undefined
+	local_matrix	= matrix_build_identity()
 	
 	static Freeze = function() {
 		if (vbuffer != undefined) {
@@ -177,6 +178,7 @@ function GMesh(_model = undefined) constructor {
 			
 			shader_set_uniform_f_array(_u_base_color_fac, _base_color_fac)
 			
+			//matrix_set(matrix_world, local_matrix)
 			vertex_submit(vbuffer, pr_trianglelist, _base_color_tex);
 		}
 		return self;
@@ -214,6 +216,11 @@ function GMaterial(_name = "gmatl") constructor {
 	}
 }
 
+// Animation data for a model
+function GAnimator() constructor {
+	
+}
+
 // Group of meshes, materials and animations
 function GModel(_name = "gmodel") constructor {
 	name		= _name
@@ -222,6 +229,8 @@ function GModel(_name = "gmodel") constructor {
 	meshes		= [];
 	materials	= {};
 	textures	= {};
+	animations	= {}
+	vtx_count	= 0;
 	
 	static Load = function(_file) {
 		static __load_accessor = function(_root, _acess_index) {
@@ -260,9 +269,7 @@ function GModel(_name = "gmodel") constructor {
 			var _total_offset	= _view_offset + _buff_offset;
 			var _seek_walk		= _buff_stride - _group_size;
 			
-			buffer_seek(_buff_id, buffer_seek_start, _total_offset);
-			show_debug_message($"stride of {_buff_stride}")
-			
+			buffer_seek(_buff_id, buffer_seek_start, _total_offset);		
 		
 			var _arr = [];
 			while (buffer_tell(_buff_id) != _total_offset + _buff_length) {
@@ -272,17 +279,7 @@ function GModel(_name = "gmodel") constructor {
 						// For some reason the color value goes way higher so this division fix it
 						var _color_fix = (_size == 4 && _type == buffer_u16 ? 65535 : 1)
 						array_push(_group_arr, buffer_read(_buff_id, _type) / _color_fix);
-						
 					}
-					
-					//var _mat = [
-					//	1.0,0.0,0.0,0.0,
-					//	0.0,0.0,-1.0,0.0,
-					//	0.0,1.0,0.0,0.0,
-					//	0.0,0.0,0.0,1.0
-					//]
-					
-					//_group_arr = matrix_transform_vertex(_mat, _group_arr[0], _group_arr[1], _group_arr[2])
 					
 					array_push(_arr, _group_arr);
 					buffer_seek(_buff_id, buffer_seek_relative, _seek_walk);
@@ -357,7 +354,7 @@ function GModel(_name = "gmodel") constructor {
 						buffer_delete(_buff_temp)
 						file_delete(_path_temp)
 					} else {
-						var _img_path	= filename_path(_file) + _img_uri;
+						var _img_path	= /*filename_path(_file) +*/ _img_uri;
 						if (string_copy(_img_uri, 0, 4) == "data") {
 							var _b64		= string_split(_img_uri, ",")[1]
 							var _buff_temp	= buffer_base64_decode(_b64)
@@ -368,8 +365,12 @@ function GModel(_name = "gmodel") constructor {
 							buffer_delete(_buff_temp)
 							file_delete(_path_temp)
 						} else {
-							_img_path = string_replace_all(_img_path, "%20", " ")
-							_spr = sprite_add(_img_path, 1, false, false, 0, 0);
+							_img_path = string_replace_all(_img_path, "%20", " ") // Names with space
+							if (file_exists(_img_path)) {
+								_spr = sprite_add(_img_path, 1, false, false, 0, 0);
+							} else {
+								_spr = spr_white
+							}
 						
 						}
 					}
@@ -379,7 +380,6 @@ function GModel(_name = "gmodel") constructor {
 		}
 		
 		// JSON and pointers are ready, proceeds to assemble scene
-		
 		var _keys = struct_get_names(_root)
 		for (var i = 0; i < array_length(_keys); i++) {
 			var _key = _keys[i]
@@ -411,7 +411,6 @@ function GModel(_name = "gmodel") constructor {
 									var _mesh		= _root.meshes[_node.mesh];
 									var _mesh_keys	= struct_get_names(_mesh);
 									
-									
 									for (var l = 0; l < array_length(_mesh_keys); l++) {
 										var _mesh_key = _mesh_keys[l];
 							
@@ -438,26 +437,21 @@ function GModel(_name = "gmodel") constructor {
 													// Mesh transformations									
 													var _model_matrix			= _node[$ "matrix"]
 													if !(is_undefined(_model_matrix)) {
-														// transpose
+														_model_matrix = mat_transpose(_model_matrix) // TODO check if its necessary
 													} else {
 														var _scl		= _node[$ "scale"]			?? [1, 1, 1];
-														var _rot		= _node[$ "rotation"]		?? [0, 0, 0, 0];
+														var _rot		= _node[$ "rotation"]		?? [0, 0, 0, 1];
 														var _trl		= _node[$ "translation"]	?? [0, 0, 0];
 														
-														// Convert rot quaternion to matrix
-														
-														// Build model matrix
-														var _mat_sr = matrix_build(
+														var _model_matrix = matrix_build_quaternion(
 															_trl[0], _trl[1], _trl[2],
-															_rot[0], _rot[1], _rot[2],
+															_rot,
 															_scl[0], _scl[1], _scl[2],
 														)
-														
-														var _model_matrix = _mat_sr
 													}
 													
-													//show_message(_model_matrix)
-													
+													var _inv_model_matrix = mat_transpose(mat_invert(_model_matrix))	// For the normals
+																									
 													// Get mesh data 
 													for (var n = 0; n < array_length(_prim_keys); n++) {
 														var _prim_key = _prim_keys[n]
@@ -490,7 +484,6 @@ function GModel(_name = "gmodel") constructor {
 															} break;
 															
 															case "indices": {
-																show_debug_message("INDICES")
 																var _vtx_id = __load_accessor(_root, _prim.indices)
 															} break;
 															
@@ -498,9 +491,7 @@ function GModel(_name = "gmodel") constructor {
 																
 																var _matl = _root.materials[_prim.material];
 																
-																// Check if material doesnt already exists
-																// If yes, reference it and continue
-																
+																// Check if material already exists
 																var _matl_name	= _matl[$ "name"] ?? $"matl_{_matl_num}";
 																_this_mesh.material = _matl_name;
 																if (!is_undefined(self.materials[$ _matl_name])) {
@@ -508,7 +499,6 @@ function GModel(_name = "gmodel") constructor {
 																}
 																
 																// If not, then load a new one
-																
 																var _this_matl	= new GMaterial();		
 																_this_matl.name = _matl_name;
 																
@@ -532,11 +522,13 @@ function GModel(_name = "gmodel") constructor {
 																					
 																					case "baseColorFactor": {
 																						var _c_val	= _pbr.baseColorFactor;
+																						var _gamma = 1/2.2;
 																						_this_matl.base_color_fac = [
-																							_c_val[0],
-																							_c_val[1],
-																							_c_val[2],
-																							_c_val[3],
+																							// Gamma space convertion - readjust on shader
+																							power(_c_val[0], _gamma),
+																							power(_c_val[1], _gamma),
+																							power(_c_val[2], _gamma),
+																							power(_c_val[3], _gamma),
 																						]
 																					} break;
 																					
@@ -616,17 +608,22 @@ function GModel(_name = "gmodel") constructor {
 														var _col_default	= [1, 1, 1, 1];
 														
 														var _flag_uv		= _mesh_flags >> Attributes.TexCoord & 0x01
-														var _uv_default		= [0, 0]
+														var _uv_default		= [0, 0];
+														
+														var _flag_norm		= _mesh_flags >> Attributes.Normal & 0x01
+														var _norm_default		= [0, 0, 1];
 														
 														for (var _vtx = 0; _vtx < array_length(_vtx_id); _vtx++) {
 															var _id = _vtx_id[_vtx]
+															vtx_count++
 															
 															var _pos	= _mesh_data[Attributes.Position][_id]
-															var _col	= _flag_col ? _mesh_data[Attributes.Color][_id] : _col_default
-															var _norm	= _mesh_data[Attributes.Normal][_id]
-															var _uv		= _flag_uv ? _mesh_data[Attributes.TexCoord][_id] : _uv_default
+															var _col	= _flag_col		? _mesh_data[Attributes.Color][_id]		: _col_default;
+															var _norm	= _flag_norm	? _mesh_data[Attributes.Normal][_id]	: _norm_default;
+															var _uv		= _flag_uv		? _mesh_data[Attributes.TexCoord][_id]	: _uv_default;
 															
 															_pos = matrix_transform_vertex(_model_matrix, _pos[0], _pos[1], _pos[2])
+															_norm = matrix_transform_vertex(_inv_model_matrix, _norm[0], _norm[1], _norm[2], 0)
 															
 															vertex_position_3d(_this_mesh.vbuffer, _pos[0], _pos[1], _pos[2])
 															vertex_color(_this_mesh.vbuffer, make_color_rgb(_col[0]*255, _col[1]*255, _col[2]*255), 1)
@@ -635,8 +632,6 @@ function GModel(_name = "gmodel") constructor {
 														}
 														
 													vertex_end(_this_mesh.vbuffer)
-													//show_message(vertex_get_number(_this_mesh.vbuffer))
-													//vertex_freeze(_this_mesh.vbuffer)
 													
 													// Current mesh fully assembled, now save it in the model
 													array_push(meshes, _this_mesh)
@@ -695,13 +690,17 @@ function GModel(_name = "gmodel") constructor {
 		return self;
 	}
 	
+	static Update = function() {
+		
+	}
+	
+	static Animate = function() {
+		
+	}
+	
 	static Submit = function() {
 		if (!is_loaded) return self;
 
-		//if (_matrix != undefined) {
-		//	matrix_set(matrix_world, _matrix)
-		//}
-		
 		for (var i = array_length(meshes) - 1; i >= 0; --i)	{
 			meshes[i].Submit();
 		}

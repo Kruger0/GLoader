@@ -11,8 +11,8 @@
   "managed": true,
   "overriddenProperties": [],
   "parent": {
-    "name": "Test",
-    "path": "folders/Test.yy",
+    "name": "glTF Loader Test",
+    "path": "glTF Loader Test.yyp",
   },
   "parentObjectId": null,
   "persistent": false,

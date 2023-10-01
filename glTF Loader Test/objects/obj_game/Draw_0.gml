@@ -8,7 +8,7 @@ gpu_set_texrepeat(true)
 
 
 var _scl = 10
-matrix_set(matrix_world, matrix_build(0, 0, 0, 180, 0, _rot, _scl, _scl, _scl))
+matrix_set(matrix_world, matrix_build(0, 0, 0, 90, 0, _rot, _scl, _scl, _scl))
 shader_set(shd_passthrough)
 
 

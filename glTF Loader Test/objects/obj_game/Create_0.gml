@@ -1,4 +1,3 @@
-
 var _files = [
 	"Box",
 	"BoxInterleaved",
@@ -9,9 +8,16 @@ var _files = [
 	"Cube/Cube",
 	"AnimatedCube/AnimatedCube",
 	"CubeWithTransform",
+	"scene",
+	"2CylinderEngine",
+	"BoxAnimated",
+	"AnimatedTriangle",
+	"CubeRotated",
+	"Shapes",
+	"DamagedHelmet",
 ]
 
-var _index = 8
+var _index = 15
 
 show_debug_overlay(true)
 
