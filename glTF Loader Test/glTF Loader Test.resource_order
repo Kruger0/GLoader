@@ -7,7 +7,11 @@
     {"name":"Test","order":8,"path":"folders/Test.yy",},
   ],
   "ResourceOrderSettings": [
+    {"name":"scr_glTF_old","order":2,"path":"scripts/scr_glTF_old/scr_glTF_old.yy",},
     {"name":"spr_normal","order":1,"path":"sprites/spr_normal/spr_normal.yy",},
     {"name":"dec_to_hex","order":1,"path":"scripts/dec_to_hex/dec_to_hex.yy",},
+    {"name":"spr_metal_rough","order":2,"path":"sprites/spr_metal_rough/spr_metal_rough.yy",},
+    {"name":"spr_occlusion","order":4,"path":"sprites/spr_occlusion/spr_occlusion.yy",},
+    {"name":"spr_emissive","order":3,"path":"sprites/spr_emissive/spr_emissive.yy",},
   ],
 }
