@@ -7,7 +7,7 @@ gpu_set_zwriteenable(true)
 gpu_set_texrepeat(true)
 
 
-var _scl = 15
+var _scl = 5
 matrix_set(matrix_world, matrix_build(0, 0, 0, 90, _rot, 0, _scl, -_scl, _scl))
 shader_set(shd_passthrough)
 

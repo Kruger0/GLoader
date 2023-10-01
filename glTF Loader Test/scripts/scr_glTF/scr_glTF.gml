@@ -228,13 +228,7 @@ function GModel(_name = "gmodel") constructor {
 			var _acess			= _root.accessors[_acess_index];
 			var _buff_view		= _root.bufferViews[_acess.bufferView];
 			var _buff_id		= _root.buffers[_buff_view.buffer];
-		
-			var _buff_offset	= _buff_view[$ "byteOffset"] ?? 0;
-			var _buff_stride	= _buff_view[$ "byteStride"] ?? 0; // TODO consider byteStride a thing
-			var _buff_length	= _buff_view.byteLength;
 			
-			buffer_seek(_buff_id, buffer_seek_start, _buff_offset);
-
 			var _type = undefined
 			switch (_acess.componentType) {		
 				case ComponentType.BYTE:			{ _type = buffer_s8		} break;
@@ -255,21 +249,53 @@ function GModel(_name = "gmodel") constructor {
 				case "MAT3":	{ _size = 09 } break;
 				case "MAT4":	{ _size = 16 } break;
 			}
+			
+			var _type_size		= buffer_sizeof(_type);
+			var _group_size		= _size * _type_size;
+			var _view_count		= _acess.count;
+			var _view_offset	= _acess[$ "byteOffset"] ?? 0;
+			var _buff_offset	= _buff_view[$ "byteOffset"] ?? 0; 
+			var _buff_stride	= _buff_view[$ "byteStride"] ?? _group_size;
+			var _buff_length	= _buff_view.byteLength;
+			var _total_offset	= _view_offset + _buff_offset;
+			var _seek_walk		= _buff_stride - _group_size;
+			
+			buffer_seek(_buff_id, buffer_seek_start, _total_offset);
+			show_debug_message($"stride of {_buff_stride}")
+			
 		
 			var _arr = [];
-			while (buffer_tell(_buff_id) != _buff_offset + _buff_length) {
+			while (buffer_tell(_buff_id) != _total_offset + _buff_length) {
 				if (_size > 1) {
 					var _group_arr = [];
 					repeat(_size) {
 						// For some reason the color value goes way higher so this division fix it
 						var _color_fix = (_size == 4 && _type == buffer_u16 ? 65535 : 1)
 						array_push(_group_arr, buffer_read(_buff_id, _type) / _color_fix);
+						
 					}
+					
+					//var _mat = [
+					//	1.0,0.0,0.0,0.0,
+					//	0.0,0.0,-1.0,0.0,
+					//	0.0,1.0,0.0,0.0,
+					//	0.0,0.0,0.0,1.0
+					//]
+					
+					//_group_arr = matrix_transform_vertex(_mat, _group_arr[0], _group_arr[1], _group_arr[2])
+					
 					array_push(_arr, _group_arr);
+					buffer_seek(_buff_id, buffer_seek_relative, _seek_walk);
 				} else {
-					array_push(_arr, buffer_read(_buff_id, _type));
+					var _scale = buffer_read(_buff_id, _type)
+					
+					array_push(_arr, _scale);
+					buffer_seek(_buff_id, buffer_seek_relative, _seek_walk);
 				}
-			}																				
+				_view_count--
+				if !(_view_count) break;
+				
+			}	
 			return _arr;
 		}
 		
@@ -399,12 +425,14 @@ function GModel(_name = "gmodel") constructor {
 													var _prim_keys	= struct_get_names(_prim);
 													
 													// Start new mesh assembling
-													var _mesh_data		= array_create(Attributes.SIZE);
+													var _mesh_data		= [];
 													var _mesh_flags		= 0x00;
 													var _vbuffer		= vertex_create_buffer();
 													var _this_mesh		= new GMesh(self);
 													var _matl_num		= 0;
 													_this_mesh.vbuffer	= _vbuffer;
+													
+													//show_message(_mesh_data)
 													
 													// Get mesh data 
 													for (var n = 0; n < array_length(_prim_keys); n++) {
@@ -429,6 +457,9 @@ function GModel(_name = "gmodel") constructor {
 																		case "WEIGHTS":		{ _data_type = Attributes.Weights	} break;
 																	}
 																	
+																	show_debug_message(_attrib_key)
+																	//show_debug_message(_mesh_data)
+																	
 																	if (_data_type != Attributes.NONE) {
 																		_mesh_flags = _mesh_flags | 0x01 << _data_type
 																		var _acess_index = _attrib[$ _attrib_key]
@@ -438,6 +469,7 @@ function GModel(_name = "gmodel") constructor {
 															} break;
 															
 															case "indices": {
+																show_debug_message("INDICES")
 																var _vtx_id = __load_accessor(_root, _prim.indices)
 															} break;
 															
@@ -564,7 +596,9 @@ function GModel(_name = "gmodel") constructor {
 														var _col_default	= [1, 1, 1, 1];
 														
 														var _flag_uv		= _mesh_flags >> Attributes.TexCoord & 0x01
-														var _uv_default		= [0, 1]
+														var _uv_default		= [0, 0]
+														
+														//show_message(_mesh_data)
 														
 														for (var _vtx = 0; _vtx < array_length(_vtx_id); _vtx++) {
 															var _id = _vtx_id[_vtx]
@@ -574,6 +608,7 @@ function GModel(_name = "gmodel") constructor {
 															var _norm	= _mesh_data[Attributes.Normal][_id]
 															var _uv		= _flag_uv ? _mesh_data[Attributes.TexCoord][_id] : _uv_default
 															
+															
 															vertex_position_3d(_this_mesh.vbuffer, _pos[0], _pos[1], _pos[2])
 															vertex_color(_this_mesh.vbuffer, make_color_rgb(_col[0]*255, _col[1]*255, _col[2]*255), 1)
 															vertex_normal(_this_mesh.vbuffer, _norm[0], _norm[1], _norm[2])
@@ -581,6 +616,7 @@ function GModel(_name = "gmodel") constructor {
 														}
 														
 													vertex_end(_this_mesh.vbuffer)
+													//show_message(vertex_get_number(_this_mesh.vbuffer))
 													//vertex_freeze(_this_mesh.vbuffer)
 													
 													// Current mesh fully assembled, now save it in the model
