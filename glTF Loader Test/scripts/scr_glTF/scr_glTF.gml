@@ -309,6 +309,7 @@ function GModel(_name = "gmodel") constructor {
 			case ".gltf": {
 				// Load base file
 				var _buffer		= buffer_load(_file);
+				if (_buffer == -1) show_error($"glTF error: coulnd't load file {_file}", true)
 				var _string		= buffer_read(_buffer, buffer_string);
 				var _root		= json_parse(_string);
 				buffer_delete(_buffer)
@@ -367,6 +368,7 @@ function GModel(_name = "gmodel") constructor {
 							buffer_delete(_buff_temp)
 							file_delete(_path_temp)
 						} else {
+							_img_path = string_replace_all(_img_path, "%20", " ")
 							_spr = sprite_add(_img_path, 1, false, false, 0, 0);
 						
 						}
@@ -409,6 +411,7 @@ function GModel(_name = "gmodel") constructor {
 									var _mesh		= _root.meshes[_node.mesh];
 									var _mesh_keys	= struct_get_names(_mesh);
 									
+									
 									for (var l = 0; l < array_length(_mesh_keys); l++) {
 										var _mesh_key = _mesh_keys[l];
 							
@@ -432,7 +435,28 @@ function GModel(_name = "gmodel") constructor {
 													var _matl_num		= 0;
 													_this_mesh.vbuffer	= _vbuffer;
 													
-													//show_message(_mesh_data)
+													// Mesh transformations									
+													var _model_matrix			= _node[$ "matrix"]
+													if !(is_undefined(_model_matrix)) {
+														// transpose
+													} else {
+														var _scl		= _node[$ "scale"]			?? [1, 1, 1];
+														var _rot		= _node[$ "rotation"]		?? [0, 0, 0, 0];
+														var _trl		= _node[$ "translation"]	?? [0, 0, 0];
+														
+														// Convert rot quaternion to matrix
+														
+														// Build model matrix
+														var _mat_sr = matrix_build(
+															_trl[0], _trl[1], _trl[2],
+															_rot[0], _rot[1], _rot[2],
+															_scl[0], _scl[1], _scl[2],
+														)
+														
+														var _model_matrix = _mat_sr
+													}
+													
+													//show_message(_model_matrix)
 													
 													// Get mesh data 
 													for (var n = 0; n < array_length(_prim_keys); n++) {
@@ -457,9 +481,6 @@ function GModel(_name = "gmodel") constructor {
 																		case "WEIGHTS":		{ _data_type = Attributes.Weights	} break;
 																	}
 																	
-																	show_debug_message(_attrib_key)
-																	//show_debug_message(_mesh_data)
-																	
 																	if (_data_type != Attributes.NONE) {
 																		_mesh_flags = _mesh_flags | 0x01 << _data_type
 																		var _acess_index = _attrib[$ _attrib_key]
@@ -481,8 +502,8 @@ function GModel(_name = "gmodel") constructor {
 																// If yes, reference it and continue
 																
 																var _matl_name	= _matl[$ "name"] ?? $"matl_{_matl_num}";
+																_this_mesh.material = _matl_name;
 																if (!is_undefined(self.materials[$ _matl_name])) {
-																	_this_mesh.material = self.materials[$ _matl_name];
 																	continue;
 																}
 																
@@ -575,7 +596,6 @@ function GModel(_name = "gmodel") constructor {
 																}
 																
 																self.materials[$ _matl_name] = _this_matl
-																_this_mesh.material = _matl_name;
 																_matl_num++
 															} break;													
 															
@@ -598,8 +618,6 @@ function GModel(_name = "gmodel") constructor {
 														var _flag_uv		= _mesh_flags >> Attributes.TexCoord & 0x01
 														var _uv_default		= [0, 0]
 														
-														//show_message(_mesh_data)
-														
 														for (var _vtx = 0; _vtx < array_length(_vtx_id); _vtx++) {
 															var _id = _vtx_id[_vtx]
 															
@@ -608,6 +626,7 @@ function GModel(_name = "gmodel") constructor {
 															var _norm	= _mesh_data[Attributes.Normal][_id]
 															var _uv		= _flag_uv ? _mesh_data[Attributes.TexCoord][_id] : _uv_default
 															
+															_pos = matrix_transform_vertex(_model_matrix, _pos[0], _pos[1], _pos[2])
 															
 															vertex_position_3d(_this_mesh.vbuffer, _pos[0], _pos[1], _pos[2])
 															vertex_color(_this_mesh.vbuffer, make_color_rgb(_col[0]*255, _col[1]*255, _col[2]*255), 1)

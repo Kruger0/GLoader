@@ -1,13 +1,17 @@
 
 var _files = [
 	"Box",
-	"Caixa",
-	"Caixo",
 	"BoxInterleaved",
-	
+	"BoxTextured",
+	"BoxTexturedNonPowerOfTwo",
+	"BoxWithSpaces/Box With Spaces",
+	"BoxVertexColors",
+	"Cube/Cube",
+	"AnimatedCube/AnimatedCube",
+	"CubeWithTransform",
 ]
 
-var _index = 3
+var _index = 8
 
 show_debug_overlay(true)
 
