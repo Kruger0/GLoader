@@ -17,13 +17,13 @@ var _files = [
 	"DamagedHelmet",
 ]
 
-var _index = 15
+var _index = 10
 
 show_debug_overlay(true)
 
 cam = camera_create()
 
-model = new GModel().Load(_files[_index]+".gltf").Freeze()
+model = new GModel().Load(_files[_index-2]+".gltf").Freeze()
 
 
 
