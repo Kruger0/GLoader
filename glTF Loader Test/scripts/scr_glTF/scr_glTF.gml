@@ -403,11 +403,8 @@ function GModel(_name = "gmodel") constructor {
 													var _mesh_flags		= 0x00;
 													var _vbuffer		= vertex_create_buffer();
 													var _this_mesh		= new GMesh(self);
+													var _matl_num		= 0;
 													_this_mesh.vbuffer	= _vbuffer;
-													
-													
-													// Sets default values		
-													
 													
 													// Get mesh data 
 													for (var n = 0; n < array_length(_prim_keys); n++) {
@@ -451,24 +448,22 @@ function GModel(_name = "gmodel") constructor {
 																// Check if material doesnt already exists
 																// If yes, reference it and continue
 																
-																if (!is_undefined(self.materials[$ _matl.name])) {
-																	_this_mesh.material = self.materials[$ _matl.name];
+																var _matl_name	= _matl[$ "name"] ?? $"matl_{_matl_num}";
+																if (!is_undefined(self.materials[$ _matl_name])) {
+																	_this_mesh.material = self.materials[$ _matl_name];
 																	continue;
 																}
 																
 																// If not, then load a new one
 																
-																var _this_matl	= new GMaterial();																
+																var _this_matl	= new GMaterial();		
+																_this_matl.name = _matl_name;
 																
 																var _matl_keys = struct_get_names(_matl);
 																for (var o = 0; o < array_length(_matl_keys); o++) {
 																	var _matl_key = _matl_keys[o]
 																	
 																	switch (_matl_key) {
-																		case "name": {
-																			_this_matl.name = _matl.name;
-																		} break;
-																		
 																		case "pbrMetallicRoughness": {
 																			var _pbr = _matl.pbrMetallicRoughness;
 																			var _pbr_keys = struct_get_names(_pbr)
@@ -547,9 +542,9 @@ function GModel(_name = "gmodel") constructor {
 																	}
 																}
 																
-																self.materials[$ _this_matl.name] = _this_matl
-																_this_mesh.material = _matl.name;
-																
+																self.materials[$ _matl_name] = _this_matl
+																_this_mesh.material = _matl_name;
+																_matl_num++
 															} break;													
 															
 															case "mode": {
