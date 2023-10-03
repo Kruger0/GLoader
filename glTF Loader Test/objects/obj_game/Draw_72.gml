@@ -1,8 +1,15 @@
 
 
-var _view_mat = matrix_build_lookat(0, -40, 0, 0, 0, 0, 0, 0, 1);
-var _proj_mat = matrix_build_projection_perspective_fov(60, 16/9, 0.1, 16000)
-camera_set_view_mat(cam, _view_mat)
-camera_set_proj_mat(cam, _proj_mat)
-camera_apply(cam)
+cam.UpdateFree()
+cam.Apply()
 draw_clear_alpha(#40B0FF, 1)
+
+gpu_set_ztestenable(false)
+gpu_set_zwriteenable(false)
+
+shader_set(shd_skybox)
+	vertex_submit(vb_skybox, pr_trianglelist, sprite_get_texture(spr_cubemap, 0))
+shader_reset()
+
+gpu_set_ztestenable(true)
+gpu_set_zwriteenable(true)

@@ -2,9 +2,9 @@
   "resourceType": "GMSprite",
   "resourceVersion": "1.0",
   "name": "spr_cubemap",
-  "bbox_bottom": 1023,
+  "bbox_bottom": 2047,
   "bbox_left": 0,
-  "bbox_right": 1023,
+  "bbox_right": 2047,
   "bbox_top": 0,
   "bboxMode": 0,
   "collisionKind": 1,
@@ -13,20 +13,20 @@
   "edgeFiltering": false,
   "For3D": false,
   "frames": [
-    {"resourceType":"GMSpriteFrame","resourceVersion":"1.1","name":"201c8ea4-d1f4-4c1e-a9c0-e1da153bccd2",},
+    {"resourceType":"GMSpriteFrame","resourceVersion":"1.1","name":"96cd87d2-ce77-4ddc-90dc-a074e30a5ebe",},
   ],
   "gridX": 0,
   "gridY": 0,
-  "height": 1024,
+  "height": 2048,
   "HTile": false,
   "layers": [
-    {"resourceType":"GMImageLayer","resourceVersion":"1.0","name":"281b4afd-411e-46a9-942d-a2d07f46d4e7","blendMode":0,"displayName":"default","isLocked":false,"opacity":100.0,"visible":true,},
+    {"resourceType":"GMImageLayer","resourceVersion":"1.0","name":"cbbb144c-94a7-4202-a61d-99afc6c33e29","blendMode":0,"displayName":"default","isLocked":false,"opacity":100.0,"visible":true,},
   ],
   "nineSlice": null,
   "origin": 0,
   "parent": {
-    "name": "glTF Loader Test",
-    "path": "glTF Loader Test.yyp",
+    "name": "Sprites",
+    "path": "folders/glTF Load/Sprites.yy",
   },
   "preMultiplyAlpha": false,
   "sequence": {
@@ -54,7 +54,7 @@
     "timeUnits": 1,
     "tracks": [
       {"resourceType":"GMSpriteFramesTrack","resourceVersion":"1.0","name":"frames","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"1.0","Keyframes":[
-            {"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"1.0","Channels":{"0":{"resourceType":"SpriteFrameKeyframe","resourceVersion":"1.0","Id":{"name":"201c8ea4-d1f4-4c1e-a9c0-e1da153bccd2","path":"sprites/spr_cubemap/spr_cubemap.yy",},},},"Disabled":false,"id":"22c9d5e0-0eb1-4237-8085-7101fa25a568","IsCreationKey":false,"Key":0.0,"Length":1.0,"Stretch":false,},
+            {"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"1.0","Channels":{"0":{"resourceType":"SpriteFrameKeyframe","resourceVersion":"1.0","Id":{"name":"96cd87d2-ce77-4ddc-90dc-a074e30a5ebe","path":"sprites/spr_cubemap/spr_cubemap.yy",},},},"Disabled":false,"id":"104cf14b-6d91-47e7-ab41-cb8681179b89","IsCreationKey":false,"Key":0.0,"Length":1.0,"Stretch":false,},
           ],},"modifiers":[],"spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],
     "visibleRange": null,
@@ -70,5 +70,5 @@
   },
   "type": 0,
   "VTile": false,
-  "width": 1024,
+  "width": 2048,
 }

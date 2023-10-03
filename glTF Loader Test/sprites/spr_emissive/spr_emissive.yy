@@ -25,8 +25,8 @@
   "nineSlice": null,
   "origin": 0,
   "parent": {
-    "name": "Textures",
-    "path": "folders/glTF Load/Textures.yy",
+    "name": "Sprites",
+    "path": "folders/glTF Load/Sprites.yy",
   },
   "preMultiplyAlpha": false,
   "sequence": {
