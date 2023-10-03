@@ -5,11 +5,22 @@ varying vec4 v_vColour;
 varying vec3 v_vNormal;
 
 uniform vec4	u_matl_color;
+uniform vec3	u_view_dir;
 
 uniform sampler2D u_tex_metal_rough;
 uniform sampler2D u_tex_normal;
 uniform sampler2D u_tex_emissive;
 uniform sampler2D u_tex_occlusion;
+
+
+mediump vec2 octahedralProjection(mediump vec3 dir) {
+	dir/= dot(vec3(1.0), abs(dir));
+	mediump vec2 rev = abs(dir.zx) - vec2(1.0,1.0);
+	mediump vec2 neg = vec2(dir.x < 0.0 ? rev.x : -rev.x,
+	dir.z < 0.0 ? rev.y : -rev.y);
+	mediump vec2 uv = dir.y < 0.0 ? neg : dir.xz;
+	return 0.5*uv + vec2(0.5,0.5);
+}
 
 
 void main() {
@@ -23,7 +34,7 @@ void main() {
 	
 	vec4 final_col = base_color * u_matl_color * v_vColour;
 	
-	vec3 light_dir = normalize(vec3(1.0));
+	vec3 light_dir = normalize(vec3(-1.0, 1.0, 1.0));
 	vec3 light_col = vec3(1.0);
 	vec3 amb_col = vec3(0.1);
 	
@@ -40,6 +51,8 @@ void main() {
 	//final_col.rgb = vec3(metrough.b);
 	//final_col.rgb = cnormal.rgb;
 	//final_col.a = 1.0;
+	
+	//final_col.rg = octahedralProjection(vec3(0, 1, 0));
 	
     gl_FragColor = final_col;
 }
