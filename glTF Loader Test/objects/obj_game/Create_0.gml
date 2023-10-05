@@ -20,9 +20,10 @@ var _files = [
 	"Sphere",
 	"Sponza/Sponza",
 	"Sponza2",
+	"Parent",
 ]
 
-var _index = 17
+var _index = 23
 model = new GModel().Load(_files[_index-2]+".gltf").Freeze()
 
 show_debug_overlay(true)

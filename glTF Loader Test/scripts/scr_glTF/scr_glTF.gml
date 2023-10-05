@@ -98,9 +98,14 @@
 #endregion
 
 
-// Group of vertes buffers
-function GMesh(_model = undefined) constructor {
-	model				= _model;
+// Animation data for a model
+function GAnimator() constructor {
+	
+}
+
+// Group of vertex buffers
+function GPrimitive(_mesh = undefined) constructor {
+	mesh				= _mesh
 	vbuffer				= undefined;
 	material			= undefined
 	
@@ -109,13 +114,118 @@ function GMesh(_model = undefined) constructor {
 	tinv_model_matrix	= matrix_build_identity()
 	transform_matrix	= matrix_build_identity()
 	
+	static Submit = function() {
+		static _tex_white			= sprite_get_texture(spr_white, 0);
+		
+		static _tex_metal_rough		= sprite_get_texture(spr_metal_rough, 0);
+		static _tex_normal			= sprite_get_texture(spr_normal, 0);
+		static _tex_emissive		= sprite_get_texture(spr_emissive, 0);
+		static _tex_occlusion		= sprite_get_texture(spr_occlusion, 0);
+		
+		static _u_tex_metal_rough	= shader_get_sampler_index(shd_passthrough, "u_tex_metal_rough");
+		static _u_tex_normal		= shader_get_sampler_index(shd_passthrough, "u_tex_normal");
+		static _u_tex_emissive		= shader_get_sampler_index(shd_passthrough, "u_tex_emissive");
+		static _u_tex_occlusion		= shader_get_sampler_index(shd_passthrough, "u_tex_occlusion");
+		
+		static _u_base_color_fac	= shader_get_uniform(shd_passthrough, "u_matl_color");
+		
+		if (vbuffer != undefined) {
+			var _shader			= shader_current();
+			
+			var _base_color_tex		= pointer_null;
+			var _metal_rough_tex	= pointer_null;
+			var _normal_tex			= pointer_null;
+			var _emissive_tex		= pointer_null;
+			var _occlusion_tex		= pointer_null;
+			
+			var _base_color_fac		= [1, 1, 1, 1];
+
+			// Search for material data
+			if (material != undefined) {
+				with (mesh.model.materials[$ material]) {
+					_base_color_tex		= base_color_tex;
+					_metal_rough_tex	= metal_rough_tex;
+					_normal_tex			= normal_tex;
+					_emissive_tex		= emissive_tex;
+					_occlusion_tex		= occlusion_tex;
+					
+					_base_color_fac		= base_color_fac;
+				}
+			}
+			
+			// If data does not exists, use default values
+			_base_color_tex		??= _tex_white;
+			_metal_rough_tex	??= _tex_metal_rough;
+			_normal_tex			??= _tex_normal;
+			_emissive_tex		??= _tex_emissive;
+			_occlusion_tex		??= _tex_occlusion;
+
+			// Send textures
+			texture_set_stage(_u_tex_metal_rough, _metal_rough_tex);
+			texture_set_stage(_u_tex_normal, _normal_tex);
+			texture_set_stage(_u_tex_emissive, _emissive_tex);
+			texture_set_stage(_u_tex_occlusion, _occlusion_tex);
+			
+			// Send material factors
+			shader_set_uniform_f_array(_u_base_color_fac, _base_color_fac);
+			
+			// Submit mesh
+			vertex_submit(vbuffer, pr_trianglelist, _base_color_tex);
+		}
+		return self;
+	}
+	
 	static Freeze = function() {
 		if (vbuffer != undefined) {
 			vertex_freeze(vbuffer)
 		}
 	}
 	
+	static Delete = function() {
+		if (vbuffer != undefined) {
+			vertex_delete_buffer(vbuffer);
+		}
+	}
+}
+
+// Group of primitives, matrices and materials
+function GMesh(_model = undefined) constructor {
+	name				= ""
+	model				= _model;
+	primitives			= [];
+	
+	final_matrix		= matrix_build_identity()
+	model_matrix		= matrix_build_identity()
+	tinv_model_matrix	= matrix_build_identity()
+	transform_matrix	= matrix_build_identity()
+	
+	static Freeze = function() {
+		for (var i = array_length(primitives) - 1; i >= 0; --i)	{
+			primitives[i].Freeze();
+		}
+		return self;
+	}
+	
 	static Submit = function() {
+		static _u_inv_model_mat	= shader_get_uniform(shd_passthrough, "u_inv_model_mat");
+
+		// Update matrices
+		world_matrix		= matrix_get(matrix_world)
+		final_matrix		= matrix_multiply(model_matrix, world_matrix);
+		tinv_model_matrix	= mat_transpose(mat_invert(final_matrix));
+		
+		shader_set_uniform_f_array(_u_inv_model_mat, tinv_model_matrix);
+		
+		matrix_set(matrix_world, final_matrix);
+		for (var i = array_length(primitives) - 1; i >= 0; --i)	{
+			primitives[i].Submit();
+		}
+		matrix_set(matrix_world, world_matrix)
+		
+		return self;
+	}
+	
+	static Submit_test = function() {
 		static _tex_white			= sprite_get_texture(spr_white, 0);
 		
 		static _tex_metal_rough		= sprite_get_texture(spr_metal_rough, 0);
@@ -156,7 +266,6 @@ function GMesh(_model = undefined) constructor {
 			}
 			
 			// If data does not exists, use default values
-			
 			_base_color_tex		??= _tex_white;
 			_metal_rough_tex	??= _tex_metal_rough;
 			_normal_tex			??= _tex_normal;
@@ -215,12 +324,7 @@ function GMaterial(_name = "gmatl") constructor {
 	}
 }
 
-// Animation data for a model
-function GAnimator() constructor {
-	
-}
-
-// Group of meshes, materials and animations
+// Group of meshes
 function GModel(_name = "gmodel") constructor {
 	name		= _name
 	is_loaded	= false;
@@ -235,9 +339,6 @@ function GModel(_name = "gmodel") constructor {
 	
 	static Load = function(_file) {
 		
-		static __def_scl	= [1, 1, 1];
-		static __def_rot	= [0, 0, 0, 1];
-		static __def_trl	= [0, 0, 0];
 		static __def_col	= [1, 1, 1, 1];
 		static __def_norm	= [0, 1, 1];
 		static __def_uv		= [0, 0];
@@ -308,7 +409,29 @@ function GModel(_name = "gmodel") constructor {
 			//show_message("Finished a reading!")
 			return _arr;
 		}
-			
+		
+		static __get_node_matrix = function(_node) {
+			static __def_scl	= [1, 1, 1];
+			static __def_rot	= [0, 0, 0, 1];
+			static __def_trl	= [0, 0, 0];
+			var _model_matrix	= _node[$ "matrix"]
+			if !(is_undefined(_model_matrix)) {
+				_model_matrix = mat_transpose(_model_matrix) // TODO check if its necessary
+			} else {
+				var _scl	= _node[$ "scale"]			?? __def_scl;
+				var _rot	= _node[$ "rotation"]		?? __def_rot;
+				var _trl	= _node[$ "translation"]	?? __def_trl;
+														
+				_model_matrix = matrix_build_quaternion(
+					_trl[0], _trl[1], _trl[2],
+					_rot,
+					_scl[0], _scl[1], _scl[2]
+				);
+			}
+			return _model_matrix;
+		}
+		
+		//Loadtime tracing
 		load_time = get_timer()
 		show_debug_message("Scene load started!")
 		
@@ -426,12 +549,18 @@ function GModel(_name = "gmodel") constructor {
 									var _mesh		= _root.meshes[_node.mesh];
 									var _mesh_keys	= struct_get_names(_mesh);
 									
+									// Start new mesh group
+									var _this_mesh				= new GMesh(self);
+									_this_mesh.model_matrix		= __get_node_matrix(_node);
+									
+									show_debug_message("New mesh started")
+									
 									for (var l = 0; l < array_length(_mesh_keys); l++) {
 										var _mesh_key = _mesh_keys[l];
 							
 										switch (_mesh_key) {
 											case "name": {
-												var _mesh_name = _mesh.name;
+												_this_mesh.name = _mesh[$ "name"] ?? $"mesh_{l}";
 											} break;	
 											
 											case "primitives": {
@@ -441,29 +570,14 @@ function GModel(_name = "gmodel") constructor {
 													var _prim		= _prims[m];
 													var _prim_keys	= struct_get_names(_prim);
 													
-													// Start new mesh assembling
-													var _mesh_data		= [];
-													var _mesh_flags		= 0x00;
+													// Start new primitive assembling
+													var _prim_data		= [];
+													var _prim_flags		= 0x00;
 													var _vbuffer		= vertex_create_buffer();
-													var _this_mesh		= new GMesh(self);
-													var _matl_num		= 0;
+													var _this_prim		= new GPrimitive(_this_mesh)
+													var _matl_num		= 0
 													
-													
-													// Mesh transformations									
-													var _model_matrix			= _node[$ "matrix"]
-													if !(is_undefined(_model_matrix)) {
-														_model_matrix = mat_transpose(_model_matrix) // TODO check if its necessary
-													} else {
-														var _scl		= _node[$ "scale"]			?? __def_scl;
-														var _rot		= _node[$ "rotation"]		?? __def_rot;
-														var _trl		= _node[$ "translation"]	?? __def_trl;
-														
-														var _model_matrix = matrix_build_quaternion(
-															_trl[0], _trl[1], _trl[2],
-															_rot,
-															_scl[0], _scl[1], _scl[2],
-														)
-													}
+													show_debug_message("New primitive started")
 																																						
 													// Get mesh data 
 													for (var n = 0; n < array_length(_prim_keys); n++) {
@@ -489,14 +603,15 @@ function GModel(_name = "gmodel") constructor {
 																	}
 																	
 																	if (_data_type != Attributes.NONE) {
-																		_mesh_flags = _mesh_flags | 0x01 << _data_type
+																		_prim_flags = _prim_flags | 0x01 << _data_type
 																		var _acess_index = _attrib[$ _attrib_key]
-																		_mesh_data[_data_type] = __load_accessor(_root, _acess_index)
+																		_prim_data[_data_type] = __load_accessor(_root, _acess_index)
 																	}
 																}
 															} break;
 															
 															case "indices": {
+																// TODO add non-indexed geometry support
 																var _vtx_id = __load_accessor(_root, _prim.indices)
 															} break;
 															
@@ -506,7 +621,7 @@ function GModel(_name = "gmodel") constructor {
 																
 																// Check if material already exists
 																var _matl_name	= _matl[$ "name"] ?? $"matl_{_matl_num}";
-																_this_mesh.material = _matl_name;
+																_this_prim.material = _matl_name;
 																if (!is_undefined(self.materials[$ _matl_name])) {
 																	continue;
 																}
@@ -617,18 +732,18 @@ function GModel(_name = "gmodel") constructor {
 													// Mesh data collected, now assemble it
 													vertex_begin(_vbuffer, global.vformat)
 													
-														var _flag_col	= _mesh_flags >> Attributes.Color & 0x01;
-														var _flag_uv	= _mesh_flags >> Attributes.TexCoord & 0x01;
-														var _flag_norm	= _mesh_flags >> Attributes.Normal & 0x01;
+														var _flag_col	= _prim_flags >> Attributes.Color & 0x01;
+														var _flag_uv	= _prim_flags >> Attributes.TexCoord & 0x01;
+														var _flag_norm	= _prim_flags >> Attributes.Normal & 0x01;
 																											
 														for (var _vtx = 0; _vtx < array_length(_vtx_id); _vtx++) {
 															var _id = _vtx_id[_vtx]
 															vtx_count++
 															
-															var _pos	= _mesh_data[Attributes.Position][_id]
-															var _col	= _flag_col		? _mesh_data[Attributes.Color][_id]		: __def_col;
-															var _norm	= _flag_norm	? _mesh_data[Attributes.Normal][_id]	: __def_norm;
-															var _uv		= _flag_uv		? _mesh_data[Attributes.TexCoord][_id]	: __def_uv;
+															var _pos	= _prim_data[Attributes.Position][_id]
+															var _col	= _flag_col		? _prim_data[Attributes.Color][_id]		: __def_col;
+															var _norm	= _flag_norm	? _prim_data[Attributes.Normal][_id]	: __def_norm;
+															var _uv		= _flag_uv		? _prim_data[Attributes.TexCoord][_id]	: __def_uv;
 							
 															// TODO test if bitshift is faster
 															var _col_rgb = make_color_rgb(_col[0]*255, _col[1]*255, _col[2]*255)
@@ -642,11 +757,10 @@ function GModel(_name = "gmodel") constructor {
 													vertex_end(_vbuffer)
 													
 													// Update mesh object
-													_this_mesh.vbuffer			= _vbuffer;
-													_this_mesh.model_matrix		= _model_matrix;
+													_this_prim.vbuffer	= _vbuffer;
 													
-													// Current mesh fully assembled, now save it in the model
-													array_push(meshes, _this_mesh);
+													// Current primitive fully assembled, now save it in the model
+													array_push(_this_mesh.primitives, _this_prim);
 												}
 												
 											} break;
@@ -656,6 +770,12 @@ function GModel(_name = "gmodel") constructor {
 											} break;
 										}
 									}
+								
+									// Current mesh fully assembled, now save it in the model
+									array_push(meshes, _this_mesh);
+									
+									// Ended mesh building
+								
 								} break;
 							}
 						}
@@ -684,12 +804,9 @@ function GModel(_name = "gmodel") constructor {
 	static Submit = function() {
 		if (!is_loaded) return self;
 
-		world_matrix = matrix_get(matrix_world)
 		for (var i = array_length(meshes) - 1; i >= 0; --i)	{
 			meshes[i].Submit();
 		}
-		matrix_set(matrix_world, world_matrix)
-		
 		return self;
 	}
 	
