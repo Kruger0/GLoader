@@ -1,6 +1,8 @@
 
 // Gloader - glTF Loader for GameMaker
-// Version 0.7
+
+
+#macro __GLTF_VERSION	"0.8.6"
 
 #region STARTUP
 
@@ -190,9 +192,10 @@ function GPrimitive(_mesh = undefined) constructor {
 
 // Group of primitives, matrices and materials
 function GMesh(_model = undefined) constructor {
-	name				= ""
+	name				= "gmesh";
 	model				= _model;
 	primitives			= [];
+	mesh_index			= undefined;
 	
 	final_matrix		= matrix_build_identity()
 	model_matrix		= matrix_build_identity()
@@ -209,10 +212,10 @@ function GMesh(_model = undefined) constructor {
 	static Submit = function() {
 		static _u_inv_model_mat	= shader_get_uniform(shd_passthrough, "u_inv_model_mat");
 
-		// Update matrices
+		// Update matrices - TODO optmize static meshes and do some better caching
 		world_matrix		= matrix_get(matrix_world)
 		final_matrix		= matrix_multiply(model_matrix, world_matrix);
-		tinv_model_matrix	= mat_transpose(mat_invert(final_matrix));
+		tinv_model_matrix	= mat_transpose(mat_invert_fast(final_matrix));
 		
 		shader_set_uniform_f_array(_u_inv_model_mat, tinv_model_matrix);
 		
@@ -222,73 +225,6 @@ function GMesh(_model = undefined) constructor {
 		}
 		matrix_set(matrix_world, world_matrix)
 		
-		return self;
-	}
-	
-	static Submit_test = function() {
-		static _tex_white			= sprite_get_texture(spr_white, 0);
-		
-		static _tex_metal_rough		= sprite_get_texture(spr_metal_rough, 0);
-		static _tex_normal			= sprite_get_texture(spr_normal, 0);
-		static _tex_emissive		= sprite_get_texture(spr_emissive, 0);
-		static _tex_occlusion		= sprite_get_texture(spr_occlusion, 0);
-		
-		static _u_tex_metal_rough	= shader_get_sampler_index(shd_passthrough, "u_tex_metal_rough");
-		static _u_tex_normal		= shader_get_sampler_index(shd_passthrough, "u_tex_normal");
-		static _u_tex_emissive		= shader_get_sampler_index(shd_passthrough, "u_tex_emissive");
-		static _u_tex_occlusion		= shader_get_sampler_index(shd_passthrough, "u_tex_occlusion");
-		
-		static _u_base_color_fac	= shader_get_uniform(shd_passthrough, "u_matl_color");
-		static _u_inv_model_mat		= shader_get_uniform(shd_passthrough, "u_inv_model_mat");
-		
-		if (vbuffer != undefined) {
-			var _shader			= shader_current();
-			
-			var _base_color_tex		= pointer_null;
-			var _metal_rough_tex	= pointer_null;
-			var _normal_tex			= pointer_null;
-			var _emissive_tex		= pointer_null;
-			var _occlusion_tex		= pointer_null;
-			
-			var _base_color_fac		= [1, 1, 1, 1];
-
-			// Search for material data
-			if (material != undefined) {
-				with (model.materials[$ material]) {
-					_base_color_tex		= base_color_tex;
-					_metal_rough_tex	= metal_rough_tex;
-					_normal_tex			= normal_tex;
-					_emissive_tex		= emissive_tex;
-					_occlusion_tex		= occlusion_tex;
-					
-					_base_color_fac		= base_color_fac;
-				}
-			}
-			
-			// If data does not exists, use default values
-			_base_color_tex		??= _tex_white;
-			_metal_rough_tex	??= _tex_metal_rough;
-			_normal_tex			??= _tex_normal;
-			_emissive_tex		??= _tex_emissive;
-			_occlusion_tex		??= _tex_occlusion;
-
-
-			texture_set_stage(_u_tex_metal_rough, _metal_rough_tex);
-			texture_set_stage(_u_tex_normal, _normal_tex);
-			texture_set_stage(_u_tex_emissive, _emissive_tex);
-			texture_set_stage(_u_tex_occlusion, _occlusion_tex);
-			
-			shader_set_uniform_f_array(_u_base_color_fac, _base_color_fac);
-			
-			// Update matrices
-			final_matrix		= matrix_multiply(model_matrix, model.world_matrix);
-			tinv_model_matrix	= mat_transpose(mat_invert(final_matrix));
-			shader_set_uniform_f_array(_u_inv_model_mat, tinv_model_matrix);
-			
-			// Submit mesh
-			matrix_set(matrix_world, final_matrix);
-			vertex_submit(vbuffer, pr_trianglelist, _base_color_tex);
-		}
 		return self;
 	}
 	
@@ -343,10 +279,10 @@ function GModel(_name = "gmodel") constructor {
 		static __def_norm	= [0, 1, 1];
 		static __def_uv		= [0, 0];
 		
-		static __load_accessor = function(_root, _acess_index) {
-			var _acess			= _root.accessors[_acess_index];
-			var _buff_view		= _root.bufferViews[_acess.bufferView];
-			var _buff_id		= _root.buffers[_buff_view.buffer];
+		static __load_accessor = function(_acess_index) {
+			var _acess			= json_root.accessors[_acess_index];
+			var _buff_view		= json_root.bufferViews[_acess.bufferView];
+			var _buff_id		= json_root.buffers[_buff_view.buffer];
 			
 			var _type = undefined
 			switch (_acess.componentType) {		
@@ -431,99 +367,140 @@ function GModel(_name = "gmodel") constructor {
 			return _model_matrix;
 		}
 		
+		static __transform_childs = function(_nodes) {
+			// Read and hierarchies all children's
+			/*
+			8: {
+				7: {
+				
+				},
+				6: {
+					5: {
+					
+					},
+					4: {
+						3: {
+						
+						},
+						2: {
+						
+						},
+						1: {
+						
+						},
+						0: {
+						
+						},
+					},
+				},
+			}
+			*/
+			// Set the matrix of each mesh before building the vbuffer
+		}
+		
+		static __parse2json = function(_file) {
+			
+			var _json = undefined
+			switch (filename_ext(_file)) {
+				case ".glb": {
+					// TODO support binary file
+				} break;
+			
+				case ".gltf": {
+					// Load base file
+					var _buffer		= buffer_load(_file);
+					if (_buffer == -1) show_error($"glTF error: coulnd't load file {_file}", true)
+					var _string		= buffer_read(_buffer, buffer_string);
+					_json			= json_parse(_string);
+					buffer_delete(_buffer)
+				
+				
+					// Load all buffers
+					var _buffs = _json[$ "buffers"]
+					for (var i = 0; i < array_length(_buffs); i++) {
+						var _buff		= undefined;
+						var _buff_id	= _buffs[i];
+						var _buff_uri	= _buff_id.uri;
+						var _path_bin	= filename_path(_file) + _buff_uri;
+				
+						if (string_copy(_buff_uri, 0, 4) == "data") {
+							_buff = buffer_base64_decode(string_split(_buff_uri, ",")[1]);
+						} else if (file_exists(_path_bin)) {
+							_buff = buffer_load(_path_bin);
+						} else {
+							show_error($"glTF error: can't load buffer {i} from {_file}", true);
+						}
+
+						_json[$ "buffers"][i] = _buff;
+					}
+				
+					// Load all images
+					var _imgs = _json[$ "images"]
+					for (var i = 0; i < array_length(_imgs); i++) {
+						var _img		= _imgs[i]
+						var _img_uri	= _img[$ "uri"];
+						var _spr		= undefined;
+						var _path_temp	= $"img_{i}.temp"
+				
+						if (_img_uri == undefined) {
+							var _buff_view			= _json[$ "bufferViews"][_img[$ "bufferView"]]
+							var _buff_id			= _json[$ "buffers"][_buff_view[$ "buffer"]]
+							var _buff_offset		= _buff_view[$ "byteOffset"]
+							var _buff_length		= _buff_view[$ "byteLength"]
+					
+							var _buff_temp			= buffer_create(_buff_length, buffer_fixed, 1)
+							buffer_copy(_buff_id, _buff_offset, _buff_length, _buff_temp, 0)
+							buffer_save(_buff_temp, _path_temp)
+					
+							_spr = sprite_add(_path_temp, 1, false, false, 0, 0)
+					
+							buffer_delete(_buff_temp)
+							file_delete(_path_temp)
+						} else {
+							var _img_path	= /*filename_path(_file) +*/ _img_uri;
+							if (string_copy(_img_uri, 0, 4) == "data") {
+								var _b64		= string_split(_img_uri, ",")[1]
+								var _buff_temp	= buffer_base64_decode(_b64)
+								buffer_save(_buff_temp, _path_temp)
+						
+								_spr = sprite_add(_path_temp, 1, false, false, 0, 0)
+						
+								buffer_delete(_buff_temp)
+								file_delete(_path_temp)
+							} else {
+								_img_path = string_replace_all(_img_path, "%20", " ") // Names with space
+								if (file_exists(_img_path)) {
+									_spr = sprite_add(_img_path, 1, false, false, 0, 0);
+								} else {
+									_spr = spr_white
+								}
+						
+							}
+						}
+						_json[$ "textures"][i] = _spr // TODO rescue sampler info on future
+					}
+				} break;
+			}
+			return _json
+		}
+
+
+
 		//Loadtime tracing
 		load_time = get_timer()
 		show_debug_message("Scene load started!")
 		
 		// Loads data according to extension type
-		switch (filename_ext(_file)) {
-			case ".glb": {
-				
-			} break;
-			
-			case ".gltf": {
-				// Load base file
-				var _buffer		= buffer_load(_file);
-				if (_buffer == -1) show_error($"glTF error: coulnd't load file {_file}", true)
-				var _string		= buffer_read(_buffer, buffer_string);
-				var _root		= json_parse(_string);
-				buffer_delete(_buffer)
-				
-				
-				// Load all buffers
-				var _buffs = _root[$ "buffers"]
-				for (var i = 0; i < array_length(_buffs); i++) {
-					var _buff		= undefined;
-					var _buff_id	= _buffs[i];
-					var _buff_uri	= _buff_id.uri;
-					var _path_bin	= filename_path(_file) + _buff_uri;
-				
-					if (string_copy(_buff_uri, 0, 4) == "data") {
-						_buff = buffer_base64_decode(string_split(_buff_uri, ",")[1]);
-					} else if (file_exists(_path_bin)) {
-						_buff = buffer_load(_path_bin);
-					} else {
-						show_error($"glTF error: can't load buffer {i} from {_file}", true);
-					}
-
-					_root[$ "buffers"][i] = _buff;
-				}
-				
-				// Load all images
-				var _imgs = _root[$ "images"]
-				for (var i = 0; i < array_length(_imgs); i++) {
-					var _img		= _imgs[i]
-					var _img_uri	= _img[$ "uri"];
-					var _spr		= undefined;
-					var _path_temp	= $"img_{i}.temp"
-				
-					if (_img_uri == undefined) {
-						var _buff_view			= _root[$ "bufferViews"][_img[$ "bufferView"]]
-						var _buff_id			= _root[$ "buffers"][_buff_view[$ "buffer"]]
-						var _buff_offset		= _buff_view[$ "byteOffset"]
-						var _buff_length		= _buff_view[$ "byteLength"]
-					
-						var _buff_temp			= buffer_create(_buff_length, buffer_fixed, 1)
-						buffer_copy(_buff_id, _buff_offset, _buff_length, _buff_temp, 0)
-						buffer_save(_buff_temp, _path_temp)
-					
-						_spr = sprite_add(_path_temp, 1, false, false, 0, 0)
-					
-						buffer_delete(_buff_temp)
-						file_delete(_path_temp)
-					} else {
-						var _img_path	= /*filename_path(_file) +*/ _img_uri;
-						if (string_copy(_img_uri, 0, 4) == "data") {
-							var _b64		= string_split(_img_uri, ",")[1]
-							var _buff_temp	= buffer_base64_decode(_b64)
-							buffer_save(_buff_temp, _path_temp)
-						
-							_spr = sprite_add(_path_temp, 1, false, false, 0, 0)
-						
-							buffer_delete(_buff_temp)
-							file_delete(_path_temp)
-						} else {
-							_img_path = string_replace_all(_img_path, "%20", " ") // Names with space
-							if (file_exists(_img_path)) {
-								_spr = sprite_add(_img_path, 1, false, false, 0, 0);
-							} else {
-								_spr = spr_white
-							}
-						
-						}
-					}
-					_root[$ "textures"][i] = _spr // TODO rescue sampler info on future
-				}
-			} break;
-		}
+		json_root	= __parse2json(_file);
+		
 		
 		// JSON and pointers are ready, proceeds to assemble scene
-		var _keys = struct_get_names(_root)
+		var _keys = struct_get_names(json_root)
 		for (var i = 0; i < array_length(_keys); i++) {
 			var _key = _keys[i]
 			switch (_key) {
 				case "asset": {
-					var _asset = _root.asset;
+					var _asset = json_root.asset;
 				} break;
 					
 				case "scenes": {
@@ -531,11 +508,13 @@ function GModel(_name = "gmodel") constructor {
 				} break;
 				
 				case "nodes": {
-					var _nodes = _root.nodes;
+					var _nodes = json_root.nodes;
+					__transform_childs(_nodes)
 					
 					for (var j = 0; j < array_length(_nodes); j++) {	
 						var _node		= _nodes[j];
 						var _node_keys	= struct_get_names(_node);
+						
 						
 						for (var k = 0; k < array_length(_node_keys); k++) {
 							var _node_key = _node_keys[k]
@@ -546,14 +525,35 @@ function GModel(_name = "gmodel") constructor {
 								} break;
 								
 								case "mesh": {
-									var _mesh		= _root.meshes[_node.mesh];
+									var _mesh		= json_root.meshes[_node.mesh];
 									var _mesh_keys	= struct_get_names(_mesh);
 									
 									// Start new mesh group
 									var _this_mesh				= new GMesh(self);
+									_this_mesh.mesh_index		= j;
 									_this_mesh.model_matrix		= __get_node_matrix(_node);
 									
-									show_debug_message("New mesh started")
+									//show_message(_this_mesh.mesh_index)
+									
+									// Check for childrens
+									if (_node[$ "children"] != undefined) {
+										// Transform next nodes
+										for (var l = 0; l < array_length(_node.children); l++) {
+											var _child_id	= _node.children[l];
+											//show_message(_child_id)
+											var _child		= _nodes[_child_id]
+											_child.matrix	= matrix_multiply(_this_mesh.model_matrix, __get_node_matrix(_child))
+											//show_message(_child.matrix)
+											
+											// Find mesh if already loaded
+											for (var m = 0; m < array_length(meshes); m++) {
+												var _mesh_index = meshes[m].mesh_index
+												if (_child_id == _mesh_index) {
+													meshes[m].model_matrix = matrix_multiply(_this_mesh.model_matrix, meshes[m].model_matrix)
+												}
+											}
+										}
+									}
 									
 									for (var l = 0; l < array_length(_mesh_keys); l++) {
 										var _mesh_key = _mesh_keys[l];
@@ -576,8 +576,6 @@ function GModel(_name = "gmodel") constructor {
 													var _vbuffer		= vertex_create_buffer();
 													var _this_prim		= new GPrimitive(_this_mesh)
 													var _matl_num		= 0
-													
-													show_debug_message("New primitive started")
 																																						
 													// Get mesh data 
 													for (var n = 0; n < array_length(_prim_keys); n++) {
@@ -605,19 +603,19 @@ function GModel(_name = "gmodel") constructor {
 																	if (_data_type != Attributes.NONE) {
 																		_prim_flags = _prim_flags | 0x01 << _data_type
 																		var _acess_index = _attrib[$ _attrib_key]
-																		_prim_data[_data_type] = __load_accessor(_root, _acess_index)
+																		_prim_data[_data_type] = __load_accessor(_acess_index)
 																	}
 																}
 															} break;
 															
 															case "indices": {
 																// TODO add non-indexed geometry support
-																var _vtx_id = __load_accessor(_root, _prim.indices)
+																var _vtx_id = __load_accessor(_prim.indices)
 															} break;
 															
 															case "material": {
 																
-																var _matl = _root.materials[_prim.material];
+																var _matl = json_root.materials[_prim.material];
 																
 																// Check if material already exists
 																var _matl_name	= _matl[$ "name"] ?? $"matl_{_matl_num}";
@@ -644,7 +642,7 @@ function GModel(_name = "gmodel") constructor {
 																				switch (_pbr_key) {
 																					case "baseColorTexture": {
 																						var _tex_id		= _pbr.baseColorTexture.index
-																						var _spr		= _root.textures[_tex_id]
+																						var _spr		= json_root.textures[_tex_id]
 																						_this_matl.base_color_tex = sprite_get_texture(_spr, 0)
 																					} break;
 																					
@@ -662,7 +660,7 @@ function GModel(_name = "gmodel") constructor {
 																					
 																					case "metallicRoughnessTexture": {
 																						var _tex_id					= _pbr.metallicRoughnessTexture.index
-																						var _spr					= _root.textures[_tex_id]
+																						var _spr					= json_root.textures[_tex_id]
 																						_this_matl.metal_rough_tex	= sprite_get_texture(_spr, 0)
 																					} break;
 																			
@@ -679,19 +677,19 @@ function GModel(_name = "gmodel") constructor {
 																		
 																		case "normalTexture": {
 																			var _tex_id				= _matl.normalTexture.index
-																			var _spr				= _root.textures[_tex_id]
+																			var _spr				= json_root.textures[_tex_id]
 																			_this_matl.normal_tex	= sprite_get_texture(_spr, 0)
 																		} break;
 																			
 																		case "occlusionTexture": {
 																			var _tex_id				= _matl.occlusionTexture.index
-																			var _spr				= _root.textures[_tex_id]
+																			var _spr				= json_root.textures[_tex_id]
 																			_this_matl.occlusion_tex = sprite_get_texture(_spr, 0)
 																		} break;
 																			
 																		case "emissiveTexture": {
 																			var _tex_id				= _matl.emissiveTexture.index
-																			var _spr				= _root.textures[_tex_id]
+																			var _spr				= json_root.textures[_tex_id]
 																			_this_matl.emissive_tex = sprite_get_texture(_spr, 0)
 																		} break;
 																			
@@ -785,7 +783,11 @@ function GModel(_name = "gmodel") constructor {
 		}
 		
 		// Model fully loaded
-		is_loaded = true
+		is_loaded = true;
+		
+		// Delete unusef struct
+		buffer_delete(json_root.buffers[0])
+		delete json_root;
 		
 		load_time = (get_timer() - load_time)/1_000
 		show_debug_message($"Scene loaded! Load time: {load_time}ms ({load_time/1000}sec)")

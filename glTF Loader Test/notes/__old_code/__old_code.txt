@@ -457,3 +457,71 @@
 //	}
 //}
 #endregion
+
+
+	static Submit_test = function() {
+		static _tex_white			= sprite_get_texture(spr_white, 0);
+		
+		static _tex_metal_rough		= sprite_get_texture(spr_metal_rough, 0);
+		static _tex_normal			= sprite_get_texture(spr_normal, 0);
+		static _tex_emissive		= sprite_get_texture(spr_emissive, 0);
+		static _tex_occlusion		= sprite_get_texture(spr_occlusion, 0);
+		
+		static _u_tex_metal_rough	= shader_get_sampler_index(shd_passthrough, "u_tex_metal_rough");
+		static _u_tex_normal		= shader_get_sampler_index(shd_passthrough, "u_tex_normal");
+		static _u_tex_emissive		= shader_get_sampler_index(shd_passthrough, "u_tex_emissive");
+		static _u_tex_occlusion		= shader_get_sampler_index(shd_passthrough, "u_tex_occlusion");
+		
+		static _u_base_color_fac	= shader_get_uniform(shd_passthrough, "u_matl_color");
+		static _u_inv_model_mat		= shader_get_uniform(shd_passthrough, "u_inv_model_mat");
+		
+		if (vbuffer != undefined) {
+			var _shader			= shader_current();
+			
+			var _base_color_tex		= pointer_null;
+			var _metal_rough_tex	= pointer_null;
+			var _normal_tex			= pointer_null;
+			var _emissive_tex		= pointer_null;
+			var _occlusion_tex		= pointer_null;
+			
+			var _base_color_fac		= [1, 1, 1, 1];
+
+			// Search for material data
+			if (material != undefined) {
+				with (model.materials[$ material]) {
+					_base_color_tex		= base_color_tex;
+					_metal_rough_tex	= metal_rough_tex;
+					_normal_tex			= normal_tex;
+					_emissive_tex		= emissive_tex;
+					_occlusion_tex		= occlusion_tex;
+					
+					_base_color_fac		= base_color_fac;
+				}
+			}
+			
+			// If data does not exists, use default values
+			_base_color_tex		??= _tex_white;
+			_metal_rough_tex	??= _tex_metal_rough;
+			_normal_tex			??= _tex_normal;
+			_emissive_tex		??= _tex_emissive;
+			_occlusion_tex		??= _tex_occlusion;
+
+
+			texture_set_stage(_u_tex_metal_rough, _metal_rough_tex);
+			texture_set_stage(_u_tex_normal, _normal_tex);
+			texture_set_stage(_u_tex_emissive, _emissive_tex);
+			texture_set_stage(_u_tex_occlusion, _occlusion_tex);
+			
+			shader_set_uniform_f_array(_u_base_color_fac, _base_color_fac);
+			
+			// Update matrices
+			final_matrix		= matrix_multiply(model_matrix, model.world_matrix);
+			tinv_model_matrix	= mat_transpose(mat_invert(final_matrix));
+			shader_set_uniform_f_array(_u_inv_model_mat, tinv_model_matrix);
+			
+			// Submit mesh
+			matrix_set(matrix_world, final_matrix);
+			vertex_submit(vbuffer, pr_trianglelist, _base_color_tex);
+		}
+		return self;
+	}
