@@ -24,11 +24,16 @@ var _files = [
 	"Parent2",
 	"SimpleMeshes",
 	"motore",
-	"materials"
+	"materials",
+	"MetalRoughSpheres",
+	"MetalRoughSpheresNoTextures",
+	"materials3",
+	"link",
 ]
 
-var _index = 24
-model = new GModel().Load(_files[_index-2]+".gltf").Freeze()
+var _index = 6
+//model = new GModel().Load(_files[_index-2]+".gltf").Freeze()
+model = new GModel().Load("stuff.glb").Freeze()
 
 show_debug_overlay(true)
 window_set_cursor(cr_none)

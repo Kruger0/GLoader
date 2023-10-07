@@ -5,12 +5,15 @@
 #macro __GLTF_VERSION	"0.8.6"
 
 #region STARTUP
-
+				    
 	#macro KEY_GLTF	0x46546C67
 	#macro KEY_JSON 0x4E4F534A
 	#macro KEY_BIN	0x004E4942
+	
 	#macro KEY_PNG	0x474E5089
 	#macro KEY_JPG	0xE0FFD8FF
+	
+	#macro SIZE_U32	4
 
 	vertex_format_begin() {
 		vertex_format_add_position_3d()			// 12
@@ -24,10 +27,8 @@
 
 	//0x0AA10A0D474E5089
 
-	enum Content {
-		Header,
-		JSON,
-		BIN,
+	enum BinContent {
+		Vertex,
 		PNG,
 		JPG
 	}
@@ -164,9 +165,9 @@ function GPrimitive(_mesh = undefined) constructor {
 				}
 			}
 			
-			show_debug_message(material)
-			show_debug_message(_metal_fac)
-			show_debug_message(_rough_fac)
+			//show_debug_message(material)
+			//show_debug_message(_metal_fac)
+			//show_debug_message(_rough_fac)
 			
 			// If data does not exists, use default values
 			_base_color_tex		??= _tex_white;
@@ -289,6 +290,11 @@ function GModel(_name = "gmodel") constructor {
 	
 	static Load = function(_file) {
 		
+		//Loadtime tracing
+		load_time = get_timer();
+		show_debug_message("Scene load started!");
+		
+		
 		static __def_col	= [1, 1, 1, 1];
 		static __def_norm	= [0, 1, 1];
 		static __def_uv		= [0, 0];
@@ -383,47 +389,24 @@ function GModel(_name = "gmodel") constructor {
 			return _model_matrix;
 		}
 		
-		static __transform_childs = function(_nodes) {
-			var _hierarchy = undefined
-			//// Read and hierarchies all children's
-			///*
-			//8: {
-			//	7: {
-				
-			//	},
-			//	6: {
-			//		5: {
-					
-			//		},
-			//		4: {
-			//			3: {
-						
-			//			},
-			//			2: {
-						
-			//			},
-			//			1: {
-						
-			//			},
-			//			0: {
-						
-			//			},
-			//		},
-			//	},
+		static __transform_child_matrices = function(_nodes) {
+			//// Set the matrix of each mesh before building the vbuffer
+			//for (var i = array_length(_nodes); i--;) {	
+			//	var _node		= _nodes[i];
+			//	var _parent		= _node
+			//	if (_node[$ "children"] != undefined) {
+			//		// Transform next nodes
+			//		// TODO wondering if matrix stack functions are better for that
+			//		var _parent_matrix = __get_node_matrix(_node)
+			//		for (var l = array_length(_node.children); l--;) {
+			//			var _child_id	= _node.children[l];
+			//			var _child		= _nodes[_child_id]
+			//			var _child_mat	= __get_node_matrix(_child)
+			//			var _new_mat	= matrix_multiply(_child_mat, _parent_matrix)
+			//			_child.matrix	= _new_mat
+			//		}
+			//	}				
 			//}
-			//*/
-			//static __rec = function(_nodes) {
-			//	var _t = {
-			//	}
-			//	_t[$ 8] = 4
-			//	show_message(_t)
-			//}
-			//if (_node[$ ]
-			//for (var i = array_length(_nodes)
-			
-			return _hierarchy
-			
-			// Set the matrix of each mesh before building the vbuffer
 		}
 		
 		static __parse2json = function(_file) {
@@ -431,7 +414,75 @@ function GModel(_name = "gmodel") constructor {
 			var _json = undefined
 			switch (filename_ext(_file)) {
 				case ".glb": {
-					// TODO support binary file
+					// Load base file
+					var _buffer		= buffer_load(_file);
+					if (_buffer == -1) show_error($"glTF error: coulnd't load file {_file}", true)
+					
+					buffer_seek(_buffer, buffer_seek_start, 0)
+					
+					// Read buffer header
+					var _key_gltf = buffer_read(_buffer, buffer_u32)
+					if (_key_gltf == KEY_GLTF) {
+						var _version	= buffer_read(_buffer, buffer_u32)
+						var _total_len	= buffer_read(_buffer, buffer_u32)
+						show_debug_message($"Valid glb format detected! Version {_version}")
+					}
+										
+					// Read binary chunks
+					var _buffer_count = 0
+					while (buffer_tell(_buffer) < buffer_get_size(_buffer)) {
+						var _chunk_length	= buffer_read(_buffer, buffer_u32)
+						var _chunk_content	= buffer_read(_buffer, buffer_u32)
+						var _seek_pos		= buffer_tell(_buffer)
+						
+						
+						switch (_chunk_content) {
+							case KEY_JSON: { 
+								var _string = buffer_read(_buffer, buffer_string)
+								_json = json_parse(_string)
+								buffer_seek(_buffer, buffer_seek_start, _seek_pos + _chunk_length)
+							} break;
+						
+							case KEY_BIN: {
+								var _buffer_bin = buffer_create(_chunk_length, buffer_fixed, 1);
+								repeat(_chunk_length / SIZE_U32) {
+									var _byte = buffer_read(_buffer, buffer_u32)
+									buffer_write(_buffer_bin, buffer_u32, _byte)
+								}
+								_json.buffers[_buffer_count] = _buffer_bin;
+								_buffer_count++;
+							} break;
+							
+							default: {
+								show_message($"Unidentified key 0x{dec_to_hex(_chunk_content)} founded in file {_file}")
+							}
+						}
+					}
+					
+					// Delet main buffer
+					buffer_delete(_buffer)
+									
+					// Rebuild images
+					var _imgs = _json[$ "images"] ?? []
+					for (var i = 0; i < array_length(_imgs); i++) {
+						var _img				= _imgs[i]	// TODO check if using strings is too slow for this. Most of those keys MUST be presene in the JSON anyway
+						var _path_temp			= $"img_{i}.temp";
+						var _buff_view			= _json[$ "bufferViews"][_img[$ "bufferView"]];
+						var _buff_id			= _json[$ "buffers"][_buff_view[$ "buffer"]];
+						var _buff_offset		= _buff_view[$ "byteOffset"] ?? 0;
+						var _buff_length		= _buff_view[$ "byteLength"];
+
+						var _buff_temp			= buffer_create(_buff_length, buffer_fixed, 1)
+						buffer_copy(_buff_id, _buff_offset, _buff_length, _buff_temp, 0)
+						buffer_save(_buff_temp, _path_temp)
+						
+						var _spr = sprite_add(_path_temp, 1, false, false, 0, 0)
+						
+						buffer_delete(_buff_temp)
+						file_delete(_path_temp)
+						_json[$ "textures"][i] = _spr // TODO rescue sampler info on future
+					}
+					
 				} break;
 			
 				case ".gltf": {
@@ -485,7 +536,7 @@ function GModel(_name = "gmodel") constructor {
 							buffer_delete(_buff_temp)
 							file_delete(_path_temp)
 						} else {
-							var _img_path	= /*filename_path(_file) +*/ _img_uri;
+							var _img_path	= filename_path(_file) + _img_uri;
 							if (string_copy(_img_uri, 0, 4) == "data") {
 								var _b64		= string_split(_img_uri, ",")[1]
 								var _buff_temp	= buffer_base64_decode(_b64)
@@ -497,6 +548,7 @@ function GModel(_name = "gmodel") constructor {
 								file_delete(_path_temp)
 							} else {
 								_img_path = string_replace_all(_img_path, "%20", " ") // Names with space
+								//show_message(_img_path)
 								if (file_exists(_img_path)) {
 									_spr = sprite_add(_img_path, 1, false, false, 0, 0);
 								} else {
@@ -515,10 +567,6 @@ function GModel(_name = "gmodel") constructor {
 		static __mesh_duplicate = function() {
 			
 		}
-
-		//Loadtime tracing
-		load_time = get_timer();
-		show_debug_message("Scene load started!");
 		
 		// Loads data according to extension type
 		json_root	= __parse2json(_file);
@@ -539,37 +587,22 @@ function GModel(_name = "gmodel") constructor {
 				
 				case "nodes": {
 					var _nodes = json_root.nodes;
-					//__transform_childs(_nodes)
+					//__transform_child_matrices(_nodes)
 					
 					// Check for childrens
-					
 					for (var j = array_length(_nodes); j--;) {	
 						var _node		= _nodes[j];
-						var _parent = _node
+						var _parent		= _node
 						if (_node[$ "children"] != undefined) {
-						// Transform next nodes
-
-							var _parent_matrix = __get_node_matrix(_node)
 							
-							//show_message(_parent_matrix)
+						// Transform next nodes
+							var _parent_matrix = __get_node_matrix(_node)
 							for (var l = array_length(_node.children); l--;) {
 								var _child_id	= _node.children[l];
-								//show_message(_child_id)
 								var _child		= _nodes[_child_id]
 								var _child_mat	= __get_node_matrix(_child)
 								var _new_mat	= matrix_multiply(_child_mat, _parent_matrix)
-								//show_message(_child_mat)
-								//show_message(_new_mat)
 								_child.matrix	= _new_mat
-								//show_message(_child.matrix)
-											
-								//// Find mesh if already loaded
-								//for (var m = 0; m < array_length(meshes); m++) {
-								//	var _mesh_index = meshes[m].mesh_index
-								//	if (_child_id == _mesh_index) {
-								//		meshes[m].model_matrix = matrix_multiply(_this_mesh.model_matrix, meshes[m].model_matrix)
-								//	}
-								//}
 							}
 						}
 					}
@@ -853,9 +886,9 @@ function GModel(_name = "gmodel") constructor {
 		}
 		delete json_root;
 		
-		// Trace load time
+		//Loadtime tracing
 		load_time = (get_timer() - load_time)/1_000
-		show_debug_message($"Scene loaded! Load time: {load_time}ms ({load_time/1000}sec)")
+		show_debug_message($"Scene loaded! Load time: {load_time}ms ({load_time/1_000}sec)")
 		
 		return self;
 	}

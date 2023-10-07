@@ -52,14 +52,16 @@ mat3 getTBN(vec3 normal, vec3 eye, vec2 uv) {
 
 void main() {
 	
+	// Samplers
 	vec4 base_color		= texture2D(gm_BaseTexture,		v_texcoord) * u_matl_color;
 	vec3 normal			= texture2D(u_tex_normal,		v_texcoord).xyz*2.0-1.0;
 	vec4 metal_rough	= texture2D(u_tex_metal_rough,	v_texcoord);
 	vec4 occlusion		= texture2D(u_tex_occlusion,	v_texcoord);
 	vec4 emissive		= texture2D(u_tex_emissive,		v_texcoord);
 	
+	
 	// Extract material data
-	float metal_fac	= clamp(metal_rough.b + u_matl_met_rou_cut.r, 0.0, 1.0);
+	float metal_fac	= clamp(metal_rough.b * u_matl_met_rou_cut.r, 0.0, 1.0);
 	float rough_fac	= clamp(metal_rough.g * u_matl_met_rou_cut.g, 0.0, 1.0);
 	float cutof_fac	= u_matl_met_rou_cut.b;
 	
@@ -67,16 +69,15 @@ void main() {
 	// Math stuff
 	vec3 view_dir = normalize(v_view_dir);
 	
+	
 	// Normal map
 	mat3 TBN = getTBN(normalize(v_normal), view_dir, v_texcoord);
-	normal = normalize(TBN * normal.rgb);		
+	normal = normalize(TBN * normal.rgb);	
+	//normal = normalize(v_normal);
 	
 	
 	// Compose base + factor + vertex
 	vec4 final_col = base_color * v_colour;
-	
-	
-	
 	
 	
 	// Alpha cutoff
@@ -93,7 +94,7 @@ void main() {
 		
 	
 	// Basic directional lighing
-	vec3 light_dir = normalize(vec3(-1.0, 1.0, 1.0)); // Hard-coded directional light
+	vec3 light_dir = normalize(vec3(-1.2, 1.3, 1.5)); // Hard-coded directional light
 	vec3 light_col = vec3(1.0);
 	vec3 amb_col = vec3(0.4);
 	
@@ -104,13 +105,20 @@ void main() {
 	
 	// Add simple fresnel color
 	float fresnel_fac = 1.0-pow(max(0.1, dot(view_dir, normal)), 0.1);
-	final_col.rgb += col_enviroment * fresnel_fac * 2.0;
+	//final_col.rgb += col_enviroment * fresnel_fac * 2.0;
+	
 	
 	// Occlude
 	final_col.rgb *= occlusion.r;
 	
+	
 	// Emissive
 	final_col += emissive;
+	
+	
+	// Debug
+	//final_col.rgb = normal;
+	//final_col.rgb = vec3(metal_fac);
 	
 	// Color output
     gl_FragColor = final_col;
