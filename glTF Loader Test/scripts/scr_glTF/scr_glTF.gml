@@ -130,6 +130,7 @@ function GPrimitive(_mesh = undefined) constructor {
 		static _u_tex_occlusion		= shader_get_sampler_index(shd_passthrough, "u_tex_occlusion");
 		
 		static _u_base_color_fac	= shader_get_uniform(shd_passthrough, "u_matl_color");
+		static _u_matl_met_rou_cut	= shader_get_uniform(shd_passthrough, "u_matl_met_rou_cut");
 		
 		if (vbuffer != undefined) {
 			var _shader			= shader_current();
@@ -141,6 +142,11 @@ function GPrimitive(_mesh = undefined) constructor {
 			var _occlusion_tex		= pointer_null;
 			
 			var _base_color_fac		= [1, 1, 1, 1];
+			var _metal_fac			= 1
+			var _rough_fac			= 0
+			var _cutoff				= 0.5
+			
+			
 
 			// Search for material data
 			if (material != undefined) {
@@ -152,8 +158,15 @@ function GPrimitive(_mesh = undefined) constructor {
 					_occlusion_tex		= occlusion_tex;
 					
 					_base_color_fac		= base_color_fac;
+					_metal_fac			= metal_fac
+					_rough_fac			= rough_fac
+					_cutoff				= alpha_cutoff
 				}
 			}
+			
+			show_debug_message(material)
+			show_debug_message(_metal_fac)
+			show_debug_message(_rough_fac)
 			
 			// If data does not exists, use default values
 			_base_color_tex		??= _tex_white;
@@ -170,6 +183,7 @@ function GPrimitive(_mesh = undefined) constructor {
 			
 			// Send material factors
 			shader_set_uniform_f_array(_u_base_color_fac, _base_color_fac);
+			shader_set_uniform_f_array(_u_matl_met_rou_cut, [_metal_fac, _rough_fac, _cutoff]);
 			
 			// Submit mesh
 			vertex_submit(vbuffer, pr_trianglelist, _base_color_tex);
@@ -352,49 +366,63 @@ function GModel(_name = "gmodel") constructor {
 			static __def_trl	= [0, 0, 0];
 			var _model_matrix	= _node[$ "matrix"]
 			if !(is_undefined(_model_matrix)) {
-				_model_matrix = mat_transpose(_model_matrix) // TODO check if its necessary
+				_model_matrix = (_model_matrix) // TODO check if its necessary
 			} else {
-				var _scl	= _node[$ "scale"]			?? __def_scl;
-				var _rot	= _node[$ "rotation"]		?? __def_rot;
 				var _trl	= _node[$ "translation"]	?? __def_trl;
-														
-				_model_matrix = matrix_build_quaternion(
-					_trl[0], _trl[1], _trl[2],
-					_rot,
-					_scl[0], _scl[1], _scl[2]
-				);
+				var _rot	= _node[$ "rotation"]		?? __def_rot;
+				var _scl	= _node[$ "scale"]			?? __def_scl;									
+												
+				var _mat_t = matrix_build(				_trl[0], _trl[1], _trl[2],	0, 0, 0,		1, 1, 1);
+				var _mat_r = matrix_build_quaternion(	0, 0, 0,					_rot,			1, 1, 1);
+				var _mat_s = matrix_build(				0, 0, 0,					0, 0, 0,		_scl[0], _scl[1], _scl[2]);
+				
+				var _mat_1 = matrix_multiply(_mat_s, _mat_r)
+				var _mat_2 = matrix_multiply(_mat_1, _mat_t)
+				_model_matrix = _mat_2
 			}
 			return _model_matrix;
 		}
 		
 		static __transform_childs = function(_nodes) {
-			// Read and hierarchies all children's
-			/*
-			8: {
-				7: {
+			var _hierarchy = undefined
+			//// Read and hierarchies all children's
+			///*
+			//8: {
+			//	7: {
 				
-				},
-				6: {
-					5: {
+			//	},
+			//	6: {
+			//		5: {
 					
-					},
-					4: {
-						3: {
+			//		},
+			//		4: {
+			//			3: {
 						
-						},
-						2: {
+			//			},
+			//			2: {
 						
-						},
-						1: {
+			//			},
+			//			1: {
 						
-						},
-						0: {
+			//			},
+			//			0: {
 						
-						},
-					},
-				},
-			}
-			*/
+			//			},
+			//		},
+			//	},
+			//}
+			//*/
+			//static __rec = function(_nodes) {
+			//	var _t = {
+			//	}
+			//	_t[$ 8] = 4
+			//	show_message(_t)
+			//}
+			//if (_node[$ ]
+			//for (var i = array_length(_nodes)
+			
+			return _hierarchy
+			
 			// Set the matrix of each mesh before building the vbuffer
 		}
 		
@@ -416,10 +444,10 @@ function GModel(_name = "gmodel") constructor {
 				
 				
 					// Load all buffers
-					var _buffs = _json[$ "buffers"]
-					for (var i = 0; i < array_length(_buffs); i++) {
+					var _buffers = _json.buffers
+					for (var i = 0; i < array_length(_buffers); i++) {
 						var _buff		= undefined;
-						var _buff_id	= _buffs[i];
+						var _buff_id	= _buffers[i];
 						var _buff_uri	= _buff_id.uri;
 						var _path_bin	= filename_path(_file) + _buff_uri;
 				
@@ -435,7 +463,7 @@ function GModel(_name = "gmodel") constructor {
 					}
 				
 					// Load all images
-					var _imgs = _json[$ "images"]
+					var _imgs = _json[$ "images"] ?? []
 					for (var i = 0; i < array_length(_imgs); i++) {
 						var _img		= _imgs[i]
 						var _img_uri	= _img[$ "uri"];
@@ -484,11 +512,13 @@ function GModel(_name = "gmodel") constructor {
 			return _json
 		}
 
-
+		static __mesh_duplicate = function() {
+			
+		}
 
 		//Loadtime tracing
-		load_time = get_timer()
-		show_debug_message("Scene load started!")
+		load_time = get_timer();
+		show_debug_message("Scene load started!");
 		
 		// Loads data according to extension type
 		json_root	= __parse2json(_file);
@@ -509,7 +539,41 @@ function GModel(_name = "gmodel") constructor {
 				
 				case "nodes": {
 					var _nodes = json_root.nodes;
-					__transform_childs(_nodes)
+					//__transform_childs(_nodes)
+					
+					// Check for childrens
+					
+					for (var j = array_length(_nodes); j--;) {	
+						var _node		= _nodes[j];
+						var _parent = _node
+						if (_node[$ "children"] != undefined) {
+						// Transform next nodes
+
+							var _parent_matrix = __get_node_matrix(_node)
+							
+							//show_message(_parent_matrix)
+							for (var l = array_length(_node.children); l--;) {
+								var _child_id	= _node.children[l];
+								//show_message(_child_id)
+								var _child		= _nodes[_child_id]
+								var _child_mat	= __get_node_matrix(_child)
+								var _new_mat	= matrix_multiply(_child_mat, _parent_matrix)
+								//show_message(_child_mat)
+								//show_message(_new_mat)
+								_child.matrix	= _new_mat
+								//show_message(_child.matrix)
+											
+								//// Find mesh if already loaded
+								//for (var m = 0; m < array_length(meshes); m++) {
+								//	var _mesh_index = meshes[m].mesh_index
+								//	if (_child_id == _mesh_index) {
+								//		meshes[m].model_matrix = matrix_multiply(_this_mesh.model_matrix, meshes[m].model_matrix)
+								//	}
+								//}
+							}
+						}
+					}
+					
 					
 					for (var j = 0; j < array_length(_nodes); j++) {	
 						var _node		= _nodes[j];
@@ -528,6 +592,11 @@ function GModel(_name = "gmodel") constructor {
 									var _mesh		= json_root.meshes[_node.mesh];
 									var _mesh_keys	= struct_get_names(_mesh);
 									
+									// Check if mesh has already beeing builded
+									if (_mesh[$ "mesh_loaded"] != undefined) {
+										// Somehow dupe the mesh data
+									}
+									
 									// Start new mesh group
 									var _this_mesh				= new GMesh(self);
 									_this_mesh.mesh_index		= j;
@@ -535,25 +604,7 @@ function GModel(_name = "gmodel") constructor {
 									
 									//show_message(_this_mesh.mesh_index)
 									
-									// Check for childrens
-									if (_node[$ "children"] != undefined) {
-										// Transform next nodes
-										for (var l = 0; l < array_length(_node.children); l++) {
-											var _child_id	= _node.children[l];
-											//show_message(_child_id)
-											var _child		= _nodes[_child_id]
-											_child.matrix	= matrix_multiply(_this_mesh.model_matrix, __get_node_matrix(_child))
-											//show_message(_child.matrix)
-											
-											// Find mesh if already loaded
-											for (var m = 0; m < array_length(meshes); m++) {
-												var _mesh_index = meshes[m].mesh_index
-												if (_child_id == _mesh_index) {
-													meshes[m].model_matrix = matrix_multiply(_this_mesh.model_matrix, meshes[m].model_matrix)
-												}
-											}
-										}
-									}
+									
 									
 									for (var l = 0; l < array_length(_mesh_keys); l++) {
 										var _mesh_key = _mesh_keys[l];
@@ -624,6 +675,8 @@ function GModel(_name = "gmodel") constructor {
 																	continue;
 																}
 																
+																//show_message(_matl_name)
+																
 																// If not, then load a new one
 																var _this_matl	= new GMaterial();		
 																_this_matl.name = _matl_name;
@@ -665,32 +718,34 @@ function GModel(_name = "gmodel") constructor {
 																					} break;
 																			
 																					case "metallicFactor": {
-																						// 1
+																						_this_matl.metal_fac = _pbr.metallicFactor
+																						
 																					} break;
 																			
 																					case "roughnessFactor": {
-																						// 1
+																						_this_matl.rough_fac = _pbr.roughnessFactor
+																						
 																					} break;
 																				}
 																			}
 																		} break;
 																		
 																		case "normalTexture": {
-																			var _tex_id				= _matl.normalTexture.index
-																			var _spr				= json_root.textures[_tex_id]
-																			_this_matl.normal_tex	= sprite_get_texture(_spr, 0)
+																			var _tex_id				= _matl.normalTexture.index;
+																			var _spr				= json_root.textures[_tex_id];
+																			_this_matl.normal_tex	= sprite_get_texture(_spr, 0);
 																		} break;
 																			
 																		case "occlusionTexture": {
-																			var _tex_id				= _matl.occlusionTexture.index
-																			var _spr				= json_root.textures[_tex_id]
-																			_this_matl.occlusion_tex = sprite_get_texture(_spr, 0)
+																			var _tex_id				= _matl.occlusionTexture.index;
+																			var _spr				= json_root.textures[_tex_id];
+																			_this_matl.occlusion_tex = sprite_get_texture(_spr, 0);
 																		} break;
 																			
 																		case "emissiveTexture": {
-																			var _tex_id				= _matl.emissiveTexture.index
-																			var _spr				= json_root.textures[_tex_id]
-																			_this_matl.emissive_tex = sprite_get_texture(_spr, 0)
+																			var _tex_id				= _matl.emissiveTexture.index;
+																			var _spr				= json_root.textures[_tex_id];
+																			_this_matl.emissive_tex = sprite_get_texture(_spr, 0);
 																		} break;
 																			
 																		case "emissiveFactor": {
@@ -701,10 +756,11 @@ function GModel(_name = "gmodel") constructor {
 																			// OPAQUE - default
 																			// MASK
 																			// BLEND
+																			_this_matl.alpha_mode	= _matl.alphaMode;
 																		} break;
 																			
 																		case "alphaCutoff": {
-																			// 0.5
+																			_this_matl.alpha_cutoff = _matl.alphaCutoff;
 																		} break;
 																			
 																		case "doubleSided": {
@@ -715,6 +771,9 @@ function GModel(_name = "gmodel") constructor {
 																
 																self.materials[$ _matl_name] = _this_matl
 																_matl_num++
+																
+																//show_message($"metal of {_this_matl.metal_fac}")
+																//show_message($"rough of {_this_matl.rough_fac}")
 															} break;													
 															
 															case "mode": {
@@ -726,6 +785,8 @@ function GModel(_name = "gmodel") constructor {
 															} break;
 														}
 													}
+													
+													
 													
 													// Mesh data collected, now assemble it
 													vertex_begin(_vbuffer, global.vformat)
@@ -773,6 +834,7 @@ function GModel(_name = "gmodel") constructor {
 									array_push(meshes, _this_mesh);
 									
 									// Ended mesh building
+									_mesh.mesh_loaded = true
 								
 								} break;
 							}
@@ -785,10 +847,13 @@ function GModel(_name = "gmodel") constructor {
 		// Model fully loaded
 		is_loaded = true;
 		
-		// Delete unusef struct
-		buffer_delete(json_root.buffers[0])
+		// Clear stuff
+		for (var i = 0; i < array_length(json_root.buffers); i++) {
+			buffer_delete(json_root.buffers[i])
+		}
 		delete json_root;
 		
+		// Trace load time
 		load_time = (get_timer() - load_time)/1_000
 		show_debug_message($"Scene loaded! Load time: {load_time}ms ({load_time/1000}sec)")
 		

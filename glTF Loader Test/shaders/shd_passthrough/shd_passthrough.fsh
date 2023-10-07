@@ -1,25 +1,26 @@
 
-// Attribures
-varying vec2		v_vTexcoord;
-varying vec4		v_vColour;
-varying vec3		v_vNormal;
-					
-// Reflection		
-varying vec3		v_EyeDir;
-					
-uniform vec4		u_matl_color;
-uniform vec3		u_eye_pos;
 
+varying vec4		v_colour;
+varying vec3		v_normal;
+varying vec2		v_texcoord;
+varying vec3		v_view_dir;
+					
 // Material
-uniform sampler2D	u_tex_metal_rough;
+uniform vec4		u_matl_color;
+uniform vec4		u_matl_met_rou_cut;
+
 uniform sampler2D	u_tex_normal;
-uniform sampler2D	u_tex_emissive;
+uniform sampler2D	u_tex_metal_rough;
 uniform sampler2D	u_tex_occlusion;
+uniform sampler2D	u_tex_emissive;
 
 // Enviroment
 uniform sampler2D	u_tex_enviroment;
 
+#region Extra
+
 mediump vec2 octahedralProjection(mediump vec3 dir) {
+	dir = vec3(dir.x, -dir.y, dir.z);
 	dir/= dot(vec3(1.0), abs(dir));
 	mediump vec2 rev = abs(dir.zx) - vec2(1.0,1.0);
 	mediump vec2 neg = vec2(dir.x < 0.0 ? rev.x : -rev.x,
@@ -27,6 +28,7 @@ mediump vec2 octahedralProjection(mediump vec3 dir) {
 	mediump vec2 uv = dir.y < 0.0 ? neg : dir.xz;
 	return 0.5*uv + vec2(0.5,0.5);
 }
+
 
 mat3 getTBN(vec3 normal, vec3 eye, vec2 uv) {
     // get edge vectors of the pixel triangle
@@ -46,37 +48,63 @@ mat3 getTBN(vec3 normal, vec3 eye, vec2 uv) {
     return mat3(normalize(tangent * invmax), normalize(bitangent * invmax), normal);
 }
 
+#endregion
 
 void main() {
-	vec2 uv = vec2(v_vTexcoord);
 	
-	vec4 base_color		= texture2D(gm_BaseTexture, uv);
-	vec3 normal			= texture2D(u_tex_normal, uv).xyz*2.0-1.0;
-	vec4 metal_rough	= texture2D(u_tex_metal_rough, uv);
-	vec4 emissive		= texture2D(u_tex_emissive, uv);
-	vec4 occlusion		= texture2D(u_tex_occlusion, uv);
+	vec4 base_color		= texture2D(gm_BaseTexture,		v_texcoord) * u_matl_color;
+	vec3 normal			= texture2D(u_tex_normal,		v_texcoord).xyz*2.0-1.0;
+	vec4 metal_rough	= texture2D(u_tex_metal_rough,	v_texcoord);
+	vec4 occlusion		= texture2D(u_tex_occlusion,	v_texcoord);
+	vec4 emissive		= texture2D(u_tex_emissive,		v_texcoord);
+	
+	// Extract material data
+	float metal_fac	= clamp(metal_rough.b + u_matl_met_rou_cut.r, 0.0, 1.0);
+	float rough_fac	= clamp(metal_rough.g * u_matl_met_rou_cut.g, 0.0, 1.0);
+	float cutof_fac	= u_matl_met_rou_cut.b;
+	
+	
+	// Math stuff
+	vec3 view_dir = normalize(v_view_dir);
 	
 	// Normal map
-	mat3 TBN = getTBN(normalize(v_vNormal), normalize(v_EyeDir), uv);
-	normal = normalize(TBN * normal.rgb);	
+	mat3 TBN = getTBN(normalize(v_normal), view_dir, v_texcoord);
+	normal = normalize(TBN * normal.rgb);		
+	
 	
 	// Compose base + factor + vertex
-	vec4 final_col = base_color * u_matl_color * v_vColour;
+	vec4 final_col = base_color * v_colour;
+	
+	
+	
+	
+	
+	// Alpha cutoff
+	if (final_col.a < cutof_fac) {
+		discard;
+	}
+
 	
 	// Metalic Roughness
-	vec3 reflection = reflect(v_EyeDir, normal);
+	vec3 reflection = reflect(view_dir, normal);
 	vec2 uv_oct = octahedralProjection(reflection.xzy);
 	vec3 col_enviroment = texture2D(u_tex_enviroment, uv_oct).rgb;
-	final_col.rgb = mix(final_col.rgb, mix(col_enviroment, vec3(0.7), metal_rough.g), metal_rough.b*0.7);
+	final_col.rgb = mix(final_col.rgb, mix(col_enviroment * final_col.rgb, final_col.rgb, rough_fac), metal_fac);
 		
+	
 	// Basic directional lighing
-	vec3 light_dir = normalize(vec3(-1.0, 1.0, 1.0));
+	vec3 light_dir = normalize(vec3(-1.0, 1.0, 1.0)); // Hard-coded directional light
 	vec3 light_col = vec3(1.0);
 	vec3 amb_col = vec3(0.4);
-	vec3 v_normal = normalize(v_vNormal);
+	
 	float NdotL = max(0.1, dot(light_dir, normal));
 	vec3 col = (light_col * NdotL) + amb_col;
 	final_col.rgb = final_col.rgb * col;
+	
+	
+	// Add simple fresnel color
+	float fresnel_fac = 1.0-pow(max(0.1, dot(view_dir, normal)), 0.1);
+	final_col.rgb += col_enviroment * fresnel_fac * 2.0;
 	
 	// Occlude
 	final_col.rgb *= occlusion.r;
@@ -84,6 +112,6 @@ void main() {
 	// Emissive
 	final_col += emissive;
 	
-	//final_col.rgb = normal;
+	// Color output
     gl_FragColor = final_col;
 }

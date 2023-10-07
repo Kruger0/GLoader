@@ -1,7 +1,8 @@
 
-varying vec3 v_EyeDir;
+varying vec3	v_view_dir;
 
 mediump vec2 octahedralProjection(mediump vec3 dir) {
+	dir = vec3(dir.x, -dir.y, dir.z);
 	dir/= dot(vec3(1.0), abs(dir));
 	mediump vec2 rev = abs(dir.zx) - vec2(1.0,1.0);
 	mediump vec2 neg = vec2(dir.x < 0.0 ? rev.x : -rev.x,
@@ -11,5 +12,5 @@ mediump vec2 octahedralProjection(mediump vec3 dir) {
 }
 
 void main() {
-    gl_FragColor = texture2D(gm_BaseTexture, octahedralProjection(v_EyeDir.xzy));
+    gl_FragColor = texture2D(gm_BaseTexture, octahedralProjection(v_view_dir.xzy));
 }
