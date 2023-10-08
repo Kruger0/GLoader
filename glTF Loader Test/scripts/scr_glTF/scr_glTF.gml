@@ -1,10 +1,16 @@
+// Gloader - glTF Model Loader for GameMaker
 
-// Gloader - glTF Loader for GameMaker
-
-
-#macro __GLTF_VERSION	"0.8.6"
+#macro __GLTF_VERSION	"0.8.8"
 
 #region STARTUP
+
+	vertex_format_begin() {						// Size
+		vertex_format_add_position_3d()			// 12
+		vertex_format_add_color()				// 4
+		vertex_format_add_normal()				// 12
+		vertex_format_add_texcoord()			// 8
+		global.vformat = vertex_format_end()	// 36
+	}
 				    
 	#macro KEY_GLTF	0x46546C67
 	#macro KEY_JSON 0x4E4F534A
@@ -15,17 +21,8 @@
 	
 	#macro SIZE_U32	4
 
-	vertex_format_begin() {
-		vertex_format_add_position_3d()			// 12
-		vertex_format_add_color()				// 4
-		vertex_format_add_normal()				// 12
-		vertex_format_add_texcoord()			// 8
-		global.vformat = vertex_format_end()
-	}
 
-	global.vbuff = vertex_create_buffer()
-
-	//0x0AA10A0D474E5089
+	//0x0AA10A0D474E5089 - i dont remember what is that but keep it there
 
 	enum BinContent {
 		Vertex,
@@ -100,7 +97,6 @@
 	
 #endregion
 
-
 // Animation data for a model
 function GAnimator() constructor {
 	
@@ -143,10 +139,9 @@ function GPrimitive(_mesh = undefined) constructor {
 			var _occlusion_tex		= pointer_null;
 			
 			var _base_color_fac		= [1, 1, 1, 1];
-			var _metal_fac			= 1
-			var _rough_fac			= 0
-			var _cutoff				= 0.5
-			
+			var _metal_fac			= 1;
+			var _rough_fac			= 0;
+			var _cutoff				= 0.5;
 			
 
 			// Search for material data
@@ -633,11 +628,7 @@ function GModel(_name = "gmodel") constructor {
 									// Start new mesh group
 									var _this_mesh				= new GMesh(self);
 									_this_mesh.mesh_index		= j;
-									_this_mesh.model_matrix		= __get_node_matrix(_node);
-									
-									//show_message(_this_mesh.mesh_index)
-									
-									
+									_this_mesh.model_matrix		= __get_node_matrix(_node);									
 									
 									for (var l = 0; l < array_length(_mesh_keys); l++) {
 										var _mesh_key = _mesh_keys[l];
@@ -660,6 +651,7 @@ function GModel(_name = "gmodel") constructor {
 													var _vbuffer		= vertex_create_buffer();
 													var _this_prim		= new GPrimitive(_this_mesh)
 													var _matl_num		= 0
+													var _vtx_id			= undefined
 																																						
 													// Get mesh data 
 													for (var n = 0; n < array_length(_prim_keys); n++) {
@@ -693,8 +685,7 @@ function GModel(_name = "gmodel") constructor {
 															} break;
 															
 															case "indices": {
-																// TODO add non-indexed geometry support
-																var _vtx_id = __load_accessor(_prim.indices)
+																_vtx_id = __load_accessor(_prim.indices)
 															} break;
 															
 															case "material": {
@@ -818,35 +809,42 @@ function GModel(_name = "gmodel") constructor {
 															} break;
 														}
 													}
-													
-													
-													
+																										
 													// Mesh data collected, now assemble it
-													vertex_begin(_vbuffer, global.vformat)
+													vertex_begin(_vbuffer, global.vformat)											
 													
 														var _flag_col	= _prim_flags >> Attributes.Color & 0x01;
 														var _flag_uv	= _prim_flags >> Attributes.TexCoord & 0x01;
 														var _flag_norm	= _prim_flags >> Attributes.Normal & 0x01;
-																											
-														for (var _vtx = 0; _vtx < array_length(_vtx_id); _vtx++) {
-															var _id = _vtx_id[_vtx]
-															vtx_count++
-															
+														var _arr_length	= 0;
+														var _is_indexed	= false;
+														
+														if (is_undefined(_vtx_id)) {	// Unindexed geometry
+															_arr_length = array_length(_prim_data[Attributes.Position]);
+														} else {						// Indexed geometry
+															_arr_length = array_length(_vtx_id);
+															_is_indexed = true;
+														}
+														
+														var _id = 0;
+														for (var _vtx = 0; _vtx < _arr_length; _vtx++) {
+															_id = _is_indexed ? _vtx_id[_vtx] : _vtx;
+	
 															var _pos	= _prim_data[Attributes.Position][_id]
 															var _col	= _flag_col		? _prim_data[Attributes.Color][_id]		: __def_col;
 															var _norm	= _flag_norm	? _prim_data[Attributes.Normal][_id]	: __def_norm;
 															var _uv		= _flag_uv		? _prim_data[Attributes.TexCoord][_id]	: __def_uv;
 							
-															// TODO test if bitshift is faster
-															var _col_rgb = make_color_rgb(_col[0]*255, _col[1]*255, _col[2]*255)
+															var _col_rgb = (_col[2] * 0xff << 16) | (_col[1] * 0xff << 8) | (_col[0] * 0xff)
 															
 															vertex_position_3d(_vbuffer, _pos[0], _pos[1], _pos[2])
-															vertex_color(_vbuffer, _col_rgb, _col[3]*255)
+															vertex_color(_vbuffer, _col_rgb, _col[3]*0xff)
 															vertex_normal(_vbuffer, _norm[0], _norm[1], _norm[2])
 															vertex_texcoord(_vbuffer, _uv[0], _uv[1])
 														}
-														
+
 													vertex_end(_vbuffer)
+													vtx_count += _vtx;
 													
 													// Update mesh object
 													_this_prim.vbuffer	= _vbuffer;
@@ -917,5 +915,3 @@ function GModel(_name = "gmodel") constructor {
 		return self;
 	}
 }
-
-

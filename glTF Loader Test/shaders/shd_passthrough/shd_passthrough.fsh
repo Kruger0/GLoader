@@ -71,9 +71,13 @@ void main() {
 	
 	
 	// Normal map
-	mat3 TBN = getTBN(normalize(v_normal), view_dir, v_texcoord);
-	normal = normalize(TBN * normal.rgb);	
-	//normal = normalize(v_normal);
+	if (v_texcoord == vec2(0.0)) {	// TODO may there is a better way of cheching the lack of UVs in a model	
+		normal = v_normal;
+	} else {
+		mat3 TBN = getTBN(normalize(v_normal), view_dir, v_texcoord);
+		normal = (TBN * normal.rgb);	
+	}
+	normal = normalize(normal);
 	
 	
 	// Compose base + factor + vertex
@@ -105,7 +109,7 @@ void main() {
 	
 	// Add simple fresnel color
 	float fresnel_fac = 1.0-pow(max(0.1, dot(view_dir, normal)), 0.1);
-	//final_col.rgb += col_enviroment * fresnel_fac * 2.0;
+	final_col.rgb += vec3(1.0) * fresnel_fac * 1.0;
 	
 	
 	// Occlude
@@ -117,8 +121,11 @@ void main() {
 	
 	
 	// Debug
-	//final_col.rgb = normal;
+	//final_col.rgb = v_texcoord.rgg;
 	//final_col.rgb = vec3(metal_fac);
+	//final_col.rgb = normal;
+	
+	final_col.rgb = pow(final_col.rgb, vec3(2.2));
 	
 	// Color output
     gl_FragColor = final_col;
