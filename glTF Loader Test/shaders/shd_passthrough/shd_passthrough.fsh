@@ -1,4 +1,5 @@
 
+#define GAMMA		1.0
 
 varying vec4		v_colour;
 varying vec3		v_normal;
@@ -84,6 +85,10 @@ void main() {
 	vec4 final_col = base_color * v_colour;
 	
 	
+	// Gamma encode
+	final_col.rgb = pow(final_col.rgb, vec3(1.0/GAMMA));
+	
+	
 	// Alpha cutoff
 	if (final_col.a < cutof_fac) {
 		discard;
@@ -125,7 +130,9 @@ void main() {
 	//final_col.rgb = vec3(metal_fac);
 	//final_col.rgb = normal;
 	
-	final_col.rgb = pow(final_col.rgb, vec3(2.2));
+	
+	// Gamma decode
+	final_col.rgb = pow(final_col.rgb, vec3(GAMMA));
 	
 	// Color output
     gl_FragColor = final_col;

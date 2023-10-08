@@ -582,7 +582,6 @@ function GModel(_name = "gmodel") constructor {
 				
 				case "nodes": {
 					var _nodes = json_root.nodes;
-					//__transform_child_matrices(_nodes)
 					
 					// Check for childrens
 					for (var j = array_length(_nodes); j--;) {	

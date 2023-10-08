@@ -31,7 +31,7 @@ var _files = [
 	"link",
 ]
 
-var _index = 16
+var _index = 12
 model = new GModel().Load(_files[_index-2]+".gltf").Freeze()
 //model = new GModel().Load("Parent2.gltf").Freeze()
 
@@ -46,7 +46,8 @@ u_tex_environment = shader_get_sampler_index(shd_passthrough, "u_tex_enviroment"
 tex_environment = sprite_get_texture(spr_cubemap, 0)
 
 
-gpu_set_cullmode(cull_clockwise)
+gpu_set_ztestenable(true)
+gpu_set_zwriteenable(true)
 gpu_set_texrepeat(true)
 gpu_set_tex_filter(true)
 

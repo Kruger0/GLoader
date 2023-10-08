@@ -2,17 +2,14 @@
 
 
 var _rot = -60+180//current_time/60
-var _scl = 2;
+var _scl = 0.5;
 var _mat = matrix_build(0, 0, 0, 90, 0, _rot, _scl, _scl, _scl)
 matrix_set(matrix_world, _mat)
-
 
 shader_set(shd_passthrough)
 gpu_set_tex_repeat_ext(u_tex_environment, false)
 texture_set_stage(u_tex_environment, tex_environment)
 
 model.Submit()
-shader_reset()
 
 
-matrix_set(matrix_world, matrix_build_identity())
