@@ -583,7 +583,7 @@ function GModel(_name = "gmodel") constructor {
 				case "nodes": {
 					var _nodes = json_root.nodes;
 					
-					// Check for childrens
+					// Check for childrens - TODO make this recursive somehow
 					for (var j = array_length(_nodes); j--;) {	
 						var _node		= _nodes[j];
 						var _parent		= _node
