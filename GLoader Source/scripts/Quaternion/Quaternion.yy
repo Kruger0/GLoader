@@ -6,6 +6,6 @@
   "isDnD": false,
   "parent": {
     "name": "callmeEthan",
-    "path": "folders/glTF Load/Scripts/Math/Quaternion/callmeEthan.yy",
+    "path": "folders/glTF Load/Extensions - Will rearrange latter/Math/Quaternion/callmeEthan.yy",
   },
 }

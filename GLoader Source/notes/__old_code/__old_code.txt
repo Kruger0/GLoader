@@ -200,7 +200,7 @@
 						
 //					}
 //				}
-//				_root[$ "textures"][i] = _spr // TODO rescue sampler info on future
+//				_root[$ "textures"][i] = _spr // TODO: rescue sampler info on future
 //			}
 //			#endregion
 			

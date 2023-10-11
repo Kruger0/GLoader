@@ -1,5 +1,5 @@
 
-// TODO: add more fun functions like transpose, inverse etc...
+// TODO:: add more fun functions like transpose, inverse etc...
 
 ///@func matrix_print_pretty(matrix, min_int, min_dec)
 function matrix_print_pretty(_m, _i = 1, _d = 2) {

@@ -31,15 +31,14 @@ var _files = [
 	"link",
 ]
 
-var _index = 16
-model = new GModel().Load(_files[_index-2]+".gltf").Freeze()
+var _index = 17
+model = new GModel().Load(_files[_index-2]+".glb").Freeze()
 //model = new GModel().Load("Parent2.gltf").Freeze()
 
 show_debug_overlay(true)
-window_set_cursor(cr_none)
 
 
-cam = new Camera3D(-50, 0, 0, 0, 0, 1, 0, 0, 1, 70, 16/9, 0.5, 16000)
+cam = new Camera3D(-20, 0, 0, 0, 0, 1, 0, 0, 1, 70, 16/9, 0.5, 16000)
 
 
 u_tex_environment = shader_get_sampler_index(shd_passthrough, "u_tex_environment")

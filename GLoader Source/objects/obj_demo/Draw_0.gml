@@ -2,7 +2,7 @@
 
 
 var _rot = -60+180//current_time/60
-var _scl = 0.5;
+var _scl = 5;
 var _mat = matrix_build(0, 0, 0, 90, 0, _rot, _scl, _scl, _scl)
 matrix_set(matrix_world, _mat)
 

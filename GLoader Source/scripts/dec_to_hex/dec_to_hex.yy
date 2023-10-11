@@ -5,7 +5,7 @@
   "isCompatibility": false,
   "isDnD": false,
   "parent": {
-    "name": "Scripts",
-    "path": "folders/glTF Load/Scripts.yy",
+    "name": "Extensions - Will rearrange latter",
+    "path": "folders/glTF Load/Extensions - Will rearrange latter.yy",
   },
 }

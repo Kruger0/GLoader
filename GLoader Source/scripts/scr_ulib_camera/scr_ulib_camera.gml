@@ -65,6 +65,7 @@ function Camera3D(_x, _y, _z, _xto, _yto, _zto, _xup, _yup, _zup, _fov, _aspect,
 		
 		if (mouse_check_button_released(mb_middle)) {
 			freelook ^= 1
+			window_set_cursor(freelook ? cr_none : cr_arrow)
 		}
 		
 		

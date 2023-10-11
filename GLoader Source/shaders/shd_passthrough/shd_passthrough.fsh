@@ -72,7 +72,7 @@ void main() {
 	
 	
 	// Normal map
-	if (v_texcoord == vec2(0.0)) {	// TODO may there is a better way of cheching the lack of UVs in a model	
+	if (v_texcoord == vec2(0.0)) {	// TODO: may there is a better way of cheching the lack of UVs in a model	
 		normal = v_normal;
 	} else {
 		mat3 TBN = getTBN(normalize(v_normal), view_dir, v_texcoord);

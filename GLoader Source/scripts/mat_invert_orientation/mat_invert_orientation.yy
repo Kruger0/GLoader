@@ -6,6 +6,6 @@
   "isDnD": false,
   "parent": {
     "name": "Snidrs",
-    "path": "folders/glTF Load/Scripts/Math/Matrix/Snidrs.yy",
+    "path": "folders/glTF Load/Extensions - Will rearrange latter/Math/Matrix/Snidrs.yy",
   },
 }
