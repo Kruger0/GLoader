@@ -10,9 +10,9 @@
 * Multiple objects
 * Multiple textures
 * Metallic, Roughness, Emissive and Occlusion maps
-* Vertex colors
+* Vertex colors*
 * Local transformations
-* Object parenting*
+* Object parenting**
 * Embbed and included file loading
 * Custom render engine
 * PBR material rendering
