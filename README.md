@@ -9,12 +9,20 @@
 * Both .glb and .gltf formats
 * Multiple objects
 * Multiple textures
+* Metallic, Roughness, Emissive and Occlusion maps
+* Vertex colors
 * Local transformations
 * Object parenting
-* Embbed and included files
+* Embbed and included file loading
+* Custom render engine
+* PBR material rendering
+* Enviroment mapping
 
 ## Roadmap
-* Add morphing targets
-* Add basic animations
-* Add sparse acessors support
-* Add skeletal animations
+* Morphing targets
+* Basic animations
+* Sparse acessors
+* Skeletal animations
+* Auto generated normals
+* Auto generated tangents
+* Customisable render pipeline and vertex formating
