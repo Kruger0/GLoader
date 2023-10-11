@@ -21,8 +21,7 @@ vertex_format_begin() {						// Size
 	
 #macro SIZE_U32	4
 
-
-//0x0AA10A0D474E5089 - i dont remember what is that but keep it there
+//0x0AA10A0D474E5089 - I don't remember what is that but keep it there till I discover
 
 enum BinContent {
 	Vertex,
@@ -93,5 +92,3 @@ enum Wrap {
 	MIRRORED_REPEAT			= 33648,
 	REPEAT					= 10497,
 }
-	
-	
