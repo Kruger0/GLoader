@@ -1,6 +1,6 @@
 <h1 align="center">glTF Loader v0.8.6</h1>
 
-<p align="center"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/GlTF_logo.svg/512px-GlTF_logo.svg.png" style="display:block; margin:auto;"></p>
+<p align="center"><img src="https://www.youtube.com/watch?v=U9TGZyP0vnY" style="display:block; margin:auto;"></p>
 
 <p align="center">A convenient loader for a convenient format, written in native GML, for loading 3D files into GameMaker</p>
 
