@@ -4,7 +4,7 @@
   "name": "shd_skybox",
   "parent": {
     "name": "Shaders",
-    "path": "folders/glTF Load/Shaders.yy",
+    "path": "folders/GLoader/Shaders.yy",
   },
   "type": 1,
 }

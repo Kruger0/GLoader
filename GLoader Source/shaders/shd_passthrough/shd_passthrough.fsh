@@ -63,7 +63,7 @@ mat3 getTBN(vec3 normal, vec3 eye, vec2 uv) {
 void main() {
 	
 	// Samplers
-	vec4 base_color		= texture2D(gm_BaseTexture,		v_texcoord) * u_matl_color;
+	vec4 base_color		= texture2D(gm_BaseTexture,		v_texcoord);// * u_matl_color;
 	vec3 normal			= texture2D(u_tex_normal,		v_texcoord).xyz*2.0-1.0;
 	vec4 metal_rough	= texture2D(u_tex_metal_rough,	v_texcoord);
 	vec4 occlusion		= texture2D(u_tex_occlusion,	v_texcoord);
@@ -81,13 +81,8 @@ void main() {
 	
 	
 	// Normal map
-	//if (v_texcoord == vec2(0.0)) {	// TODO: may there is a better way of cheching the lack of UVs in a model	
-	//	normal = v_normal;
-	//} else {
-		mat3 TBN = getTBN(normalize(v_normal), view_dir, v_texcoord);
-		normal = (TBN * normal.rgb);	
-	//}
-	normal = normalize(normal);
+	mat3 TBN = getTBN(normalize(v_normal), view_dir, v_texcoord);
+	normal = normalize(TBN * normal.rgb);
 	
 	
 	// Compose base + factor + vertex
@@ -137,7 +132,8 @@ void main() {
 	// Debug
 	//final_col.rgb = v_texcoord.rgg;
 	//final_col.rgb = vec3(metal_fac);
-	//final_col.rgb = normal;
+	final_col.rgb = normal;
+	final_col.rgb = base_color.rgb;
 	
 	
 	// Gamma decode

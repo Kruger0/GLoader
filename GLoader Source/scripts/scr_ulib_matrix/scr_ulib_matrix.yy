@@ -6,6 +6,6 @@
   "isDnD": false,
   "parent": {
     "name": "ULib",
-    "path": "folders/glTF Load/Extensions - Will rearrange latter/ULib.yy",
+    "path": "folders/GLoader/Extensions - Will rearrange latter/ULib.yy",
   },
 }

@@ -1,11 +1,11 @@
 {
   "resourceType": "GMScript",
   "resourceVersion": "1.0",
-  "name": "__scr_gmodel",
+  "name": "__scr_GModel",
   "isCompatibility": false,
   "isDnD": false,
   "parent": {
-    "name": "Scripts",
-    "path": "folders/glTF Load/Scripts.yy",
+    "name": "Classes",
+    "path": "folders/GLoader/Classes.yy",
   },
 }

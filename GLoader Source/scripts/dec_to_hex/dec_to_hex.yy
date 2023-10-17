@@ -6,6 +6,6 @@
   "isDnD": false,
   "parent": {
     "name": "Extensions - Will rearrange latter",
-    "path": "folders/glTF Load/Extensions - Will rearrange latter.yy",
+    "path": "folders/GLoader/Extensions - Will rearrange latter.yy",
   },
 }

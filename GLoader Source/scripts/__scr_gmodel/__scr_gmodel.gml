@@ -21,7 +21,7 @@ function GModel(_name = "gmodel") constructor {
 		load_time = get_timer();
 		show_debug_message("Scene load started!");
 		
-		
+		static __matl_num	= 0;
 		static __def_col	= [1, 1, 1, 1];
 		static __def_norm	= [0, 1, 1];
 		static __def_uv		= [0, 0];
@@ -381,7 +381,6 @@ function GModel(_name = "gmodel") constructor {
 													var _prim_flags		= 0x00;
 													var _vbuffer		= vertex_create_buffer();
 													var _this_prim		= new GPrimitive(_this_mesh)
-													var _matl_num		= 0
 													var _vtx_id			= undefined
 																																						
 													// Get mesh data 
@@ -408,29 +407,37 @@ function GModel(_name = "gmodel") constructor {
 																	}
 																	
 																	if (_data_type != Attributes.NONE) {
-																		_prim_flags = _prim_flags | 0x01 << _data_type
-																		var _acess_index = _attrib[$ _attrib_key]
-																		_prim_data[_data_type] = __load_accessor(_acess_index)
+																		_prim_flags = _prim_flags | 0x01 << _data_type;
+																		var _acess_index = _attrib[$ _attrib_key];
+																		_prim_data[_data_type] = __load_accessor(_acess_index);
 																	}
 																}
 															} break;
 															
 															case "indices": {
-																_vtx_id = __load_accessor(_prim.indices)
+																_vtx_id = __load_accessor(_prim.indices);
 															} break;
 															
 															case "material": {
 																
 																var _matl = json_root.materials[_prim.material];
 																
+																// If matl doesn't have a name, assign a number
+																var _matl_name = _matl[$ "name"];
+																if (is_undefined(_matl_name)) {
+																	_matl_name = $"matl_{__matl_num}";
+																	__matl_num++;																	
+																}
+																	
+																show_debug_message(_matl_name)
+																
 																// Check if material already exists
-																var _matl_name	= _matl[$ "name"] ?? $"matl_{_matl_num}";
 																_this_prim.material = _matl_name;
 																if (!is_undefined(self.materials[$ _matl_name])) {
+																	// If so, reference it and continue
 																	continue;
 																}
 																
-																//show_message(_matl_name)
 																
 																// If not, then load a new one
 																var _this_matl	= new GMaterial();		
@@ -525,7 +532,6 @@ function GModel(_name = "gmodel") constructor {
 																}
 																
 																self.materials[$ _matl_name] = _this_matl
-																_matl_num++
 																
 																//show_message($"metal of {_this_matl.metal_fac}")
 																//show_message($"rough of {_this_matl.rough_fac}")

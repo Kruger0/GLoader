@@ -1,11 +1,11 @@
 {
   "resourceType": "GMScript",
   "resourceVersion": "1.0",
-  "name": "__scr_gcache",
+  "name": "__scr_GCache",
   "isCompatibility": false,
   "isDnD": false,
   "parent": {
-    "name": "Scripts",
-    "path": "folders/glTF Load/Scripts.yy",
+    "name": "Classes",
+    "path": "folders/GLoader/Classes.yy",
   },
 }
