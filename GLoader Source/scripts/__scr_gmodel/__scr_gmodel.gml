@@ -428,8 +428,7 @@ function GModel(_name = "gmodel") constructor {
 																	_matl_name = $"matl_{__matl_num}";
 																	__matl_num++;																	
 																}
-																	
-																show_debug_message(_matl_name)
+																
 																
 																// Check if material already exists
 																_this_prim.material = _matl_name;
@@ -528,6 +527,18 @@ function GModel(_name = "gmodel") constructor {
 																		case "doubleSided": {
 																			// false
 																		} break;
+																		
+																		case "extensions": { // TODO: oh boy...
+																			// Dirty base color
+																			var _tex_id		= _matl.extensions.KHR_materials_pbrSpecularGlossiness.diffuseTexture.index
+																			var _spr		= json_root.textures[_tex_id]
+																			_this_matl.base_color_tex = sprite_get_texture(_spr, 0)
+																			
+																			// Dirty metalRough
+																			var _tex_id					= _matl.extensions.KHR_materials_pbrSpecularGlossiness.specularGlossinessTexture.index
+																			var _spr					= json_root.textures[_tex_id]
+																			_this_matl.metal_rough_tex	= sprite_get_texture(_spr, 0)
+																		} break
 																	}
 																}
 																

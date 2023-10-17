@@ -32,9 +32,9 @@ var _files = [
 ]
 
 var _index = 17
-//model = new GModel().Load(_files[_index-2]+".glb").Freeze()
+model = new GModel().Load(_files[_index-2]+".glb").Freeze()
 //model = new GModel().Load("2CylinderEngine.gltf").Freeze()
-model = new GModel().Load("island.glb").Freeze()
+//model = new GModel().Load("stonelake.glb").Freeze()
 
 show_debug_overlay(true)
 

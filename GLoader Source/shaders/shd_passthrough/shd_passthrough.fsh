@@ -132,8 +132,8 @@ void main() {
 	// Debug
 	//final_col.rgb = v_texcoord.rgg;
 	//final_col.rgb = vec3(metal_fac);
-	final_col.rgb = normal;
-	final_col.rgb = base_color.rgb;
+	//final_col.rgb = normal;
+	//final_col.rgb = base_color.rgb;
 	
 	
 	// Gamma decode
