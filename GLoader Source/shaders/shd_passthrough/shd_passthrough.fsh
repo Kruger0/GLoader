@@ -37,6 +37,15 @@ mat3 getTBN(vec3 normal, vec3 eye, vec2 uv) {
     vec3 dp2 = dFdy(eye);
     vec2 duv1 = dFdx(uv);
     vec2 duv2 = dFdy(uv);
+	
+	// if could't derive the uvs, returns the vertex normal
+	if (duv1 + duv2 == vec2(0,0)) {
+		return mat3(
+			normal,
+			0, 0, 0,
+			0, 0, 0
+		);
+	}
     
     // solve the linear system
     vec3 dp2perp = cross(dp2, normal);
@@ -72,12 +81,12 @@ void main() {
 	
 	
 	// Normal map
-	if (v_texcoord == vec2(0.0)) {	// TODO: may there is a better way of cheching the lack of UVs in a model	
-		normal = v_normal;
-	} else {
+	//if (v_texcoord == vec2(0.0)) {	// TODO: may there is a better way of cheching the lack of UVs in a model	
+	//	normal = v_normal;
+	//} else {
 		mat3 TBN = getTBN(normalize(v_normal), view_dir, v_texcoord);
 		normal = (TBN * normal.rgb);	
-	}
+	//}
 	normal = normalize(normal);
 	
 	

@@ -1,6 +1,7 @@
 {
   "FolderOrderSettings": [
     {"name":"glTF Load","order":2,"path":"folders/glTF Load.yy",},
+    {"name":"Extensions - Will rearrange latter","order":5,"path":"folders/glTF Load/Extensions - Will rearrange latter.yy",},
     {"name":"Math","order":1,"path":"folders/glTF Load/Extensions - Will rearrange latter/Math.yy",},
     {"name":"Snidrs","order":12,"path":"folders/glTF Load/Extensions - Will rearrange latter/Math/Matrix/Snidrs.yy",},
     {"name":"Quaternion","order":1,"path":"folders/glTF Load/Extensions - Will rearrange latter/Math/Quaternion.yy",},
@@ -8,10 +9,9 @@
     {"name":"Snidrs","order":8,"path":"folders/glTF Load/Extensions - Will rearrange latter/Math/Quaternion/Snidrs.yy",},
     {"name":"Vector","order":2,"path":"folders/glTF Load/Extensions - Will rearrange latter/Math/Vector.yy",},
     {"name":"Snidrs","order":11,"path":"folders/glTF Load/Extensions - Will rearrange latter/Math/Vector/Snidrs.yy",},
+    {"name":"Notes","order":4,"path":"folders/glTF Load/Notes.yy",},
     {"name":"Shaders","order":2,"path":"folders/glTF Load/Shaders.yy",},
     {"name":"Textures","order":1,"path":"folders/glTF Load/Textures.yy",},
-    {"name":"Extensions - Will rearrange latter","order":5,"path":"folders/glTF Load/Extensions - Will rearrange latter.yy",},
-    {"name":"Notes","order":4,"path":"folders/glTF Load/Notes.yy",},
   ],
   "ResourceOrderSettings": [
     {"name":"__scr_gmesh","order":4,"path":"scripts/__scr_gmesh/__scr_gmesh.yy",},

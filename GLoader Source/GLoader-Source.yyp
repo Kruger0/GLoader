@@ -12,7 +12,7 @@
   "defaultScriptType": 1,
   "Folders": [
     {"resourceType":"GMFolder","resourceVersion":"1.0","name":"glTF Load","folderPath":"folders/glTF Load.yy",},
-    {"resourceType":"GMFolder","resourceVersion":"1.0","name":"Scripts","folderPath":"folders/glTF Load/Scripts.yy",},
+    {"resourceType":"GMFolder","resourceVersion":"1.0","name":"Extensions - Will rearrange latter","folderPath":"folders/glTF Load/Extensions - Will rearrange latter.yy",},
     {"resourceType":"GMFolder","resourceVersion":"1.0","name":"Math","folderPath":"folders/glTF Load/Extensions - Will rearrange latter/Math.yy",},
     {"resourceType":"GMFolder","resourceVersion":"1.0","name":"Matrix","folderPath":"folders/glTF Load/Extensions - Will rearrange latter/Math/Matrix.yy",},
     {"resourceType":"GMFolder","resourceVersion":"1.0","name":"Snidrs","folderPath":"folders/glTF Load/Extensions - Will rearrange latter/Math/Matrix/Snidrs.yy",},
@@ -21,11 +21,11 @@
     {"resourceType":"GMFolder","resourceVersion":"1.0","name":"Snidrs","folderPath":"folders/glTF Load/Extensions - Will rearrange latter/Math/Quaternion/Snidrs.yy",},
     {"resourceType":"GMFolder","resourceVersion":"1.0","name":"Vector","folderPath":"folders/glTF Load/Extensions - Will rearrange latter/Math/Vector.yy",},
     {"resourceType":"GMFolder","resourceVersion":"1.0","name":"Snidrs","folderPath":"folders/glTF Load/Extensions - Will rearrange latter/Math/Vector/Snidrs.yy",},
+    {"resourceType":"GMFolder","resourceVersion":"1.0","name":"ULib","folderPath":"folders/glTF Load/Extensions - Will rearrange latter/ULib.yy",},
+    {"resourceType":"GMFolder","resourceVersion":"1.0","name":"Notes","folderPath":"folders/glTF Load/Notes.yy",},
+    {"resourceType":"GMFolder","resourceVersion":"1.0","name":"Scripts","folderPath":"folders/glTF Load/Scripts.yy",},
     {"resourceType":"GMFolder","resourceVersion":"1.0","name":"Shaders","folderPath":"folders/glTF Load/Shaders.yy",},
     {"resourceType":"GMFolder","resourceVersion":"1.0","name":"Textures","folderPath":"folders/glTF Load/Textures.yy",},
-    {"resourceType":"GMFolder","resourceVersion":"1.0","name":"ULib","folderPath":"folders/glTF Load/Extensions - Will rearrange latter/ULib.yy",},
-    {"resourceType":"GMFolder","resourceVersion":"1.0","name":"Extensions - Will rearrange latter","folderPath":"folders/glTF Load/Extensions - Will rearrange latter.yy",},
-    {"resourceType":"GMFolder","resourceVersion":"1.0","name":"Notes","folderPath":"folders/glTF Load/Notes.yy",},
   ],
   "IncludedFiles": [
     {"resourceType":"GMIncludedFile","resourceVersion":"1.0","name":"2CylinderEngine.gltf","CopyToMask":-1,"filePath":"datafiles",},
@@ -84,7 +84,7 @@
   "isEcma": false,
   "LibraryEmitters": [],
   "MetaData": {
-    "IDEVersion": "2023.8.1.102",
+    "IDEVersion": "2023.8.2.108",
   },
   "resources": [
     {"id":{"name":"__scr_gmesh","path":"scripts/__scr_gmesh/__scr_gmesh.yy",},},
