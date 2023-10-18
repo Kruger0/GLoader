@@ -4,6 +4,11 @@
 #macro __GLOADER_VERSION	"0.8.8"
 #macro __GLOADER_DATE		"10-2023"
 
+#macro RU_SURE	?? {}
+#macro GET_HASH struct_get_from_hash
+#macro SET_HASH variable_get_hash
+#macro GAMMA 1/2.2
+
 
 vertex_format_begin() {						// Size
 	vertex_format_add_position_3d()			// 12

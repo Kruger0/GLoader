@@ -34,7 +34,7 @@ var _files = [
 var _index = 17
 model = new GModel().Load(_files[_index-2]+".glb").Freeze()
 //model = new GModel().Load("2CylinderEngine.gltf").Freeze()
-//model = new GModel().Load("stonelake.glb").Freeze()
+//model = new GModel().Load("island.glb").Freeze()
 
 show_debug_overlay(true)
 
@@ -95,6 +95,7 @@ vertex_position_3d(vb_skybox, 05, -5, 00)
 
 vertex_end(vb_skybox)
 vertex_freeze(vb_skybox)
+
 
 
 

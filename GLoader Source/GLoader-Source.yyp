@@ -12,6 +12,7 @@
   "defaultScriptType": 1,
   "Folders": [
     {"resourceType":"GMFolder","resourceVersion":"1.0","name":"GLoader","folderPath":"folders/GLoader.yy",},
+    {"resourceType":"GMFolder","resourceVersion":"1.0","name":"Classes","folderPath":"folders/GLoader/Classes.yy",},
     {"resourceType":"GMFolder","resourceVersion":"1.0","name":"Extensions - Will rearrange latter","folderPath":"folders/GLoader/Extensions - Will rearrange latter.yy",},
     {"resourceType":"GMFolder","resourceVersion":"1.0","name":"Math","folderPath":"folders/GLoader/Extensions - Will rearrange latter/Math.yy",},
     {"resourceType":"GMFolder","resourceVersion":"1.0","name":"Matrix","folderPath":"folders/GLoader/Extensions - Will rearrange latter/Math/Matrix.yy",},
@@ -23,7 +24,6 @@
     {"resourceType":"GMFolder","resourceVersion":"1.0","name":"Snidrs","folderPath":"folders/GLoader/Extensions - Will rearrange latter/Math/Vector/Snidrs.yy",},
     {"resourceType":"GMFolder","resourceVersion":"1.0","name":"ULib","folderPath":"folders/GLoader/Extensions - Will rearrange latter/ULib.yy",},
     {"resourceType":"GMFolder","resourceVersion":"1.0","name":"Notes","folderPath":"folders/GLoader/Notes.yy",},
-    {"resourceType":"GMFolder","resourceVersion":"1.0","name":"Classes","folderPath":"folders/GLoader/Classes.yy",},
     {"resourceType":"GMFolder","resourceVersion":"1.0","name":"Shaders","folderPath":"folders/GLoader/Shaders.yy",},
     {"resourceType":"GMFolder","resourceVersion":"1.0","name":"Textures","folderPath":"folders/GLoader/Textures.yy",},
     {"resourceType":"GMFolder","resourceVersion":"1.0","name":"Default Materials","folderPath":"folders/GLoader/Textures/Default Materials.yy",},
@@ -142,6 +142,7 @@
     {"id":{"name":"mat_invert","path":"scripts/mat_invert/mat_invert.yy",},},
     {"id":{"name":"scr_ulib_matrix","path":"scripts/scr_ulib_matrix/scr_ulib_matrix.yy",},},
     {"id":{"name":"vector_distance","path":"scripts/vector_distance/vector_distance.yy",},},
+    {"id":{"name":"Script43","path":"scripts/Script43/Script43.yy",},},
     {"id":{"name":"mat_create_from_dualquat","path":"scripts/mat_create_from_dualquat/mat_create_from_dualquat.yy",},},
     {"id":{"name":"rm_demo","path":"rooms/rm_demo/rm_demo.yy",},},
   ],

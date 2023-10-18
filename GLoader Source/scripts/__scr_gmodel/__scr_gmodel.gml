@@ -8,9 +8,9 @@ function GModel(_name = "gmodel") constructor {
 	meshes		= [];
 	materials	= {};
 	textures	= {};
-	animations	= {}
+	animations	= {};
 	vtx_count	= 0;
-	load_time	= 0
+	load_time	= 0;
 	world_matrix	= matrix_build_identity()
 	
 	static Load = function(_file) {
@@ -22,11 +22,36 @@ function GModel(_name = "gmodel") constructor {
 		show_debug_message("Scene load started!");
 		
 		static __matl_num	= 0;
+		
 		static __def_col	= [1, 1, 1, 1];
 		static __def_norm	= [0, 1, 1];
 		static __def_uv		= [0, 0];
 		
+		static __def_fac_metal	= 1;
+		static __def_fac_rough	= 1;
+		
+		static __def_texid_basecolor	= 0
+		static __def_texid_normal		= 0
+		static __def_texid_occlusion	= 0
+		static __def_texid_emissive		= 0
+		static __def_texid_metal_rough	= 0
+		
+		static __hash_index						= SET_HASH("index")
+		static __hash_baseColorTexture			= SET_HASH("baseColorTexture")
+		static __hash_baseColorFactor			= SET_HASH("baseColorFactor")
+		static __hash_metallicRoughnessTexture	= SET_HASH("metallicRoughnessTexture")
+		static __hash_metallicFactor			= SET_HASH("metallicFactor")
+		static __hash_roughnessFactor			= SET_HASH("roughnessFactor")
+		static __hash_normalTexture				= SET_HASH("normalTexture")
+		static __hash_occlusionTexture			= SET_HASH("occlusionTexture")
+		static __hash_emissiveTexture			= SET_HASH("emissiveTexture")
+		static __hash_pbrMetallicRoughness		= SET_HASH("pbrMetallicRoughness")
+		
 		static __load_accessor = function(_acess_index) {
+			
+			static __hash_byteOffset = SET_HASH("byteOffset");
+			static __hash_byteStride = SET_HASH("byteStride");
+			
 			var _acess			= json_root.accessors[_acess_index];
 			var _buff_view		= json_root.bufferViews[_acess.bufferView];
 			var _buff_id		= json_root.buffers[_buff_view.buffer];
@@ -55,9 +80,9 @@ function GModel(_name = "gmodel") constructor {
 			var _type_size		= buffer_sizeof(_type);
 			var _group_size		= _size * _type_size;
 			var _view_count		= _acess.count;
-			var _view_offset	= _acess[$ "byteOffset"] ?? 0;
-			var _buff_offset	= _buff_view[$ "byteOffset"] ?? 0; 
-			var _buff_stride	= _buff_view[$ "byteStride"] ?? _group_size;
+			var _view_offset	= struct_get_from_hash(_acess, __hash_byteOffset) ?? 0
+			var _buff_offset	= struct_get_from_hash(_buff_view, __hash_byteOffset) ?? 0
+			var _buff_stride	= struct_get_from_hash(_buff_view, __hash_byteStride) ?? _group_size
 			var _buff_length	= _buff_view.byteLength;
 			var _total_offset	= _view_offset + _buff_offset;
 			var _byte_stride	= _buff_stride - _group_size;
@@ -207,7 +232,7 @@ function GModel(_name = "gmodel") constructor {
 						
 						buffer_delete(_buff_temp)
 						file_delete(_path_temp)
-						_json[$ "textures"][i] = _spr // TODO: rescue sampler info on future
+						_json.textures[i] = _spr // TODO: rescue sampler info on future
 					}
 					
 				} break;
@@ -237,7 +262,7 @@ function GModel(_name = "gmodel") constructor {
 							show_error($"glTF error: can't load buffer {i} from {_file}", true);
 						}
 
-						_json[$ "buffers"][i] = _buff;
+						_json.buffers[i] = _buff;
 					}
 				
 					// Load all images
@@ -281,16 +306,31 @@ function GModel(_name = "gmodel") constructor {
 								} else {
 									_spr = spr_white
 								}
-						
 							}
 						}
-						_json[$ "textures"][i] = _spr // TODO: rescue sampler info on future
+						_json.textures[i] = _spr // TODO: rescue sampler info on future
 					}
 				} break;
 			}
+			
+			// Push default texture indices
+			var _len = array_length(_json.textures)
+			array_push(_json.textures, spr_white)
+			array_push(_json.textures, spr_normal)
+			array_push(_json.textures, spr_metal_rough)
+			array_push(_json.textures, spr_emissive)
+			array_push(_json.textures, spr_occlusion)
+			
+			__def_texid_basecolor	= _len++;
+			__def_texid_normal		= _len++;
+			__def_texid_occlusion	= _len++;
+			__def_texid_emissive	= _len++;
+			__def_texid_metal_rough	= _len;
+		
 			return _json
 		}
-
+		
+		
 		static __mesh_duplicate = function() {
 			
 		}
@@ -442,114 +482,81 @@ function GModel(_name = "gmodel") constructor {
 																var _this_matl	= new GMaterial();		
 																_this_matl.name = _matl_name;
 																
-																var _matl_keys = struct_get_names(_matl);
-																for (var o = 0; o < array_length(_matl_keys); o++) {
-																	var _matl_key = _matl_keys[o]
+																
+																// PBR
+																var _pbr = GET_HASH(_matl, __hash_pbrMetallicRoughness);
+																if !(is_undefined(_pbr)) {
 																	
-																	switch (_matl_key) {
-																		case "pbrMetallicRoughness": {
-																			var _pbr = _matl.pbrMetallicRoughness;
-																			var _pbr_keys = struct_get_names(_pbr)
-																			for (var p = 0; p < array_length(_pbr_keys); p++) {
-																				var _pbr_key = _pbr_keys[p]
-																				
-																				switch (_pbr_key) {
-																					case "baseColorTexture": {
-																						var _tex_id		= _pbr.baseColorTexture.index
-																						var _spr		= json_root.textures[_tex_id]
-																						_this_matl.base_color_tex = sprite_get_texture(_spr, 0)
-																					} break;
-																					
-																					case "baseColorFactor": {
-																						var _c_val	= _pbr.baseColorFactor;
-																						var _gamma = 1/2.2;
-																						_this_matl.base_color_fac = [
-																							// Gamma space convertion - readjust on shader
-																							power(_c_val[0], _gamma),
-																							power(_c_val[1], _gamma),
-																							power(_c_val[2], _gamma),
-																							power(_c_val[3], _gamma),
-																						]
-																					} break;
-																					
-																					case "metallicRoughnessTexture": {
-																						var _tex_id					= _pbr.metallicRoughnessTexture.index
-																						var _spr					= json_root.textures[_tex_id]
-																						_this_matl.metal_rough_tex	= sprite_get_texture(_spr, 0)
-																					} break;
+																	// Base Color
+																	var _tex_ref				= GET_HASH(_pbr, __hash_baseColorTexture) RU_SURE
+																	var _tex_id					= GET_HASH(_tex_ref, __hash_index) ?? __def_texid_basecolor
+																	var _spr					= json_root.textures[_tex_id]
+																	_this_matl.base_color_tex	= sprite_get_texture(_spr, 0)
 																			
-																					case "metallicFactor": {
-																						_this_matl.metal_fac = _pbr.metallicFactor
-																						
-																					} break;
+																	var _c_val	= GET_HASH(_pbr, __hash_baseColorFactor) ?? __def_col;
+																	_this_matl.base_color_fac = [
+																		// Gamma space convertion - readjust on shader
+																		power(_c_val[0], GAMMA),
+																		power(_c_val[1], GAMMA),
+																		power(_c_val[2], GAMMA),
+																		power(_c_val[3], GAMMA),
+																	]
 																			
-																					case "roughnessFactor": {
-																						_this_matl.rough_fac = _pbr.roughnessFactor
-																						
-																					} break;
-																				}
-																			}
-																		} break;
-																		
-																		case "normalTexture": {
-																			var _tex_id				= _matl.normalTexture.index;
-																			var _spr				= json_root.textures[_tex_id];
-																			_this_matl.normal_tex	= sprite_get_texture(_spr, 0);
-																		} break;
+																	// Metallic Roughness																			
+																	var _tex_ref				= GET_HASH(_pbr, __hash_metallicRoughnessTexture) RU_SURE
+																	var _tex_id					= GET_HASH(_tex_ref, __hash_index) ?? __def_texid_metal_rough
+																	var _spr					= json_root.textures[_tex_id]
+																	_this_matl.metal_rough_tex	= sprite_get_texture(_spr, 0)
 																			
-																		case "occlusionTexture": {
-																			var _tex_id				= _matl.occlusionTexture.index;
-																			var _spr				= json_root.textures[_tex_id];
-																			_this_matl.occlusion_tex = sprite_get_texture(_spr, 0);
-																		} break;
+																	_this_matl.metal_fac = GET_HASH(_pbr, __hash_metallicFactor) ?? __def_fac_metal;
+																	_this_matl.rough_fac = GET_HASH(_pbr, __hash_roughnessFactor) ?? __def_fac_rough;
+																}
+																
+																// Normal
+																var _tex_ref			= GET_HASH(_matl, __hash_normalTexture) RU_SURE;
+																var _tex_id				= GET_HASH(_tex_ref, __hash_index) ?? __def_texid_normal;
+																var _spr				= json_root.textures[_tex_id];
+																_this_matl.normal_tex	= sprite_get_texture(_spr, 0);
+																
+																
+																// Occlusion
+																var _tex_ref			= GET_HASH(_matl, __hash_occlusionTexture) RU_SURE;
+																var _tex_id				= GET_HASH(_tex_ref, __hash_index) ?? __def_texid_occlusion;
+																var _spr				= json_root.textures[_tex_id];
+																_this_matl.occlusion_tex= sprite_get_texture(_spr, 0);
+																
+																
+																// Emissive
+																var _tex_ref			= GET_HASH(_matl, __hash_emissiveTexture) RU_SURE;
+																var _tex_id				= GET_HASH(_tex_ref, __hash_index) ?? __def_texid_emissive;
+																var _spr				= json_root.textures[_tex_id];
+																_this_matl.emissive_tex	= sprite_get_texture(_spr, 0);
+																_this_matl.emissive_fac	= _matl[$ "emissiveFactor"] ?? 0;
+																
+																// Alpha
+																_this_matl.alpha_mode	= _matl[$ "alphaMode"] ?? "OPAQUE";
+																_this_matl.alpha_cutoff = _matl[$ "alphaCutoff"] ?? 0.5;
+																
+																
+																// Extensions
+																if !(is_undefined(_matl[$ "extensions"])) {
+																	// Dirty base color
+																	var _tex_id		= _matl.extensions.KHR_materials_pbrSpecularGlossiness.diffuseTexture.index
+																	var _spr		= json_root.textures[_tex_id]
+																	_this_matl.base_color_tex = sprite_get_texture(_spr, 0)
 																			
-																		case "emissiveTexture": {
-																			var _tex_id				= _matl.emissiveTexture.index;
-																			var _spr				= json_root.textures[_tex_id];
-																			_this_matl.emissive_tex = sprite_get_texture(_spr, 0);
-																		} break;
-																			
-																		case "emissiveFactor": {
-																			_this_matl.emissive_fac	= _matl.emissiveFactor;
-																		} break;
-																			
-																		case "alphaMode": {
-																			// OPAQUE - default
-																			// MASK
-																			// BLEND
-																			_this_matl.alpha_mode	= _matl.alphaMode;
-																		} break;
-																			
-																		case "alphaCutoff": {
-																			_this_matl.alpha_cutoff = _matl.alphaCutoff;
-																		} break;
-																			
-																		case "doubleSided": {
-																			// false
-																		} break;
-																		
-																		case "extensions": { // TODO: oh boy...
-																			// Dirty base color
-																			var _tex_id		= _matl.extensions.KHR_materials_pbrSpecularGlossiness.diffuseTexture.index
-																			var _spr		= json_root.textures[_tex_id]
-																			_this_matl.base_color_tex = sprite_get_texture(_spr, 0)
-																			
-																			// Dirty metalRough
-																			var _tex_id					= _matl.extensions.KHR_materials_pbrSpecularGlossiness.specularGlossinessTexture.index
-																			var _spr					= json_root.textures[_tex_id]
-																			_this_matl.metal_rough_tex	= sprite_get_texture(_spr, 0)
-																		} break
-																	}
+																	// Dirty metalRough
+																	var _tex_id					= _matl.extensions.KHR_materials_pbrSpecularGlossiness.specularGlossinessTexture.index
+																	var _spr					= json_root.textures[_tex_id]
+																	_this_matl.metal_rough_tex	= sprite_get_texture(_spr, 0)
 																}
 																
 																self.materials[$ _matl_name] = _this_matl
-																
-																//show_message($"metal of {_this_matl.metal_fac}")
-																//show_message($"rough of {_this_matl.rough_fac}")
+
 															} break;													
 															
 															case "mode": {
-																	
+																// Primitive mode stuff
 															} break;
 																
 															case "targets": {
@@ -574,14 +581,19 @@ function GModel(_name = "gmodel") constructor {
 															_is_indexed = true;
 														}
 														
+														var _prim_pos		= _prim_data[Attributes.Position]
+														var _prim_color		= _flag_col		? _prim_data[Attributes.Color]		: __def_col
+														var _prim_normal	= _flag_norm	? _prim_data[Attributes.Normal]		: __def_norm
+														var _prim_texcoord	= _flag_uv		? _prim_data[Attributes.TexCoord]	: __def_uv
+														
 														var _id = 0;
 														for (var _vtx = 0; _vtx < _arr_length; _vtx++) {
 															_id = _is_indexed ? _vtx_id[_vtx] : _vtx;
 	
-															var _pos	= _prim_data[Attributes.Position][_id]
-															var _col	= _flag_col		? _prim_data[Attributes.Color][_id]		: __def_col;
-															var _norm	= _flag_norm	? _prim_data[Attributes.Normal][_id]	: __def_norm;
-															var _uv		= _flag_uv		? _prim_data[Attributes.TexCoord][_id]	: __def_uv;
+															var _pos	= _prim_pos[_id]
+															var _col	= _flag_col		? _prim_color[_id]		: __def_col;
+															var _norm	= _flag_norm	? _prim_normal[_id]		: __def_norm;
+															var _uv		= _flag_uv		? _prim_texcoord[_id]	: __def_uv;
 							
 															var _col_rgb = (_col[2] * 0xff << 16) | (_col[1] * 0xff << 8) | (_col[0] * 0xff)
 															
