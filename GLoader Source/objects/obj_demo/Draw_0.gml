@@ -10,5 +10,20 @@ shader_set(shd_passthrough)
 gpu_set_tex_repeat_ext(u_tex_environment, false)
 texture_set_stage(u_tex_environment, tex_environment)
 
-model.Submit()
+
+model.Submit(); // full scene
+
+matrix_set_world(0, 0, 40, 90, 0, _rot, _scl, _scl, _scl)
+
+model.Submit("Sphere")
+
+matrix_set_world(0, 0, -40, 90, 0, _rot, _scl, _scl, _scl)
+
+model.Submit("Cube")
+
+matrix_set_world(0, 40, -40, 90, 0, _rot, _scl, _scl, _scl)
+
+model.Submit("Ball")
+
+matrix_reset()
 

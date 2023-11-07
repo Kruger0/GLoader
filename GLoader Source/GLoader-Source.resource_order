@@ -58,7 +58,6 @@
     {"name":"mat_invert","order":4,"path":"scripts/mat_invert/mat_invert.yy",},
     {"name":"scr_ulib_matrix","order":2,"path":"scripts/scr_ulib_matrix/scr_ulib_matrix.yy",},
     {"name":"vector_distance","order":2,"path":"scripts/vector_distance/vector_distance.yy",},
-    {"name":"Script43","order":3,"path":"scripts/Script43/Script43.yy",},
     {"name":"mat_create_from_dualquat","order":2,"path":"scripts/mat_create_from_dualquat/mat_create_from_dualquat.yy",},
   ],
 }

@@ -343,8 +343,6 @@ function GModel(_name = "gmodel") constructor {
 		__def_texid_occlusion	= _len;
 		
 		
-		
-		
 		// JSON and pointers are ready, proceeds to assemble scene
 		var _keys = struct_get_names(json_root)
 		for (var i = 0; i < array_length(_keys); i++) {
@@ -409,10 +407,10 @@ function GModel(_name = "gmodel") constructor {
 									
 									for (var l = 0; l < array_length(_mesh_keys); l++) {
 										var _mesh_key = _mesh_keys[l];
-							
+										_this_mesh.name = _mesh[$ "name"] ?? $"mesh_{l}";
 										switch (_mesh_key) {
 											case "name": {
-												_this_mesh.name = _mesh[$ "name"] ?? $"mesh_{l}";
+												
 											} break;	
 											
 											case "primitives": {
@@ -494,7 +492,7 @@ function GModel(_name = "gmodel") constructor {
 																if !(is_undefined(_pbr)) {
 																	
 																	// Base Color
-																	var _tex_ref				= GET_HASH(_pbr, __hash_baseColorTexture) RU_SURE
+																	var _tex_ref				= GET_HASH(_pbr, __hash_baseColorTexture) ?? {}
 																	var _tex_id					= GET_HASH(_tex_ref, __hash_index) ?? __def_texid_basecolor
 																	var _spr					= json_root.textures[_tex_id]
 																	_this_matl.base_color_tex	= sprite_get_texture(_spr, 0)
@@ -509,7 +507,7 @@ function GModel(_name = "gmodel") constructor {
 																	]
 																	
 																	// Metallic Roughness																			
-																	var _tex_ref				= GET_HASH(_pbr, __hash_metallicRoughnessTexture) RU_SURE
+																	var _tex_ref				= GET_HASH(_pbr, __hash_metallicRoughnessTexture) ?? {}
 																	var _tex_id					= GET_HASH(_tex_ref, __hash_index) ?? __def_texid_metal_rough
 																	var _spr					= json_root.textures[_tex_id]
 																	_this_matl.metal_rough_tex	= sprite_get_texture(_spr, 0)
@@ -519,21 +517,21 @@ function GModel(_name = "gmodel") constructor {
 																}
 																
 																// Normal
-																var _tex_ref			= GET_HASH(_matl, __hash_normalTexture) RU_SURE;
+																var _tex_ref			= GET_HASH(_matl, __hash_normalTexture) ?? {};
 																var _tex_id				= GET_HASH(_tex_ref, __hash_index) ?? __def_texid_normal;
 																var _spr				= json_root.textures[_tex_id];
 																_this_matl.normal_tex	= sprite_get_texture(_spr, 0);
 																
 																
 																// Occlusion
-																var _tex_ref			= GET_HASH(_matl, __hash_occlusionTexture) RU_SURE;
+																var _tex_ref			= GET_HASH(_matl, __hash_occlusionTexture) ?? {};
 																var _tex_id				= GET_HASH(_tex_ref, __hash_index) ?? __def_texid_occlusion;
 																var _spr				= json_root.textures[_tex_id];
 																_this_matl.occlusion_tex= sprite_get_texture(_spr, 0);
 																
 																
 																// Emissive
-																var _tex_ref			= GET_HASH(_matl, __hash_emissiveTexture) RU_SURE;
+																var _tex_ref			= GET_HASH(_matl, __hash_emissiveTexture) ?? {};
 																var _tex_id				= GET_HASH(_tex_ref, __hash_index) ?? __def_texid_emissive;
 																var _spr				= json_root.textures[_tex_id];
 																_this_matl.emissive_tex	= sprite_get_texture(_spr, 0);
@@ -623,7 +621,7 @@ function GModel(_name = "gmodel") constructor {
 											} break;
 											
 											case "weights": {
-													
+												// skeletal animation stuff
 											} break;
 										}
 									}
@@ -666,9 +664,28 @@ function GModel(_name = "gmodel") constructor {
 		
 	}
 	
-	static Submit = function() {
+	static Submit = function(_mesh_name = undefined) {
 		if (!is_loaded) return self;
+		
+		// Specific model in scene
+		if (!is_undefined(_mesh_name)) {
+			var _model_exists = false
+			for (var i = array_length(meshes) - 1; i >= 0; --i)	{
+				var _mesh = meshes[i];
+				if (_mesh.name == _mesh_name) { // TODO: cache this index somehow
+					_model_exists = true
+					_mesh.Submit()
+					break;
+				}
+			}
+			if !(_model_exists) {
+				//show_debug_message($"Couldn't find mesh \"{_mesh_name}\" in model \"{name}\". Rendering full scene.")
+			} else {
+				return self;
+			}
+		}
 
+		// All models in scene
 		for (var i = array_length(meshes) - 1; i >= 0; --i)	{
 			meshes[i].Submit();
 		}

@@ -4,7 +4,7 @@
 #macro __GLOADER_VERSION	"0.8.8"
 #macro __GLOADER_DATE		"10-2023"
 
-#macro RU_SURE	?? {}
+
 #macro GET_HASH struct_get_from_hash
 #macro SET_HASH variable_get_hash
 #macro GAMMA 1/2.2
@@ -21,8 +21,7 @@ vertex_format_begin() {						// Size
 #macro KEY_GLTF	0x46546C67
 #macro KEY_JSON 0x4E4F534A
 #macro KEY_BIN	0x004E4942
-#macro KEY_PNG	0x474E5089
-#macro KEY_JPG	0xE0FFD8FF
+
 	
 #macro SIZE_U32	4
 

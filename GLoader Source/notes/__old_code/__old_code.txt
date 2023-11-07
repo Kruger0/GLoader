@@ -1,3 +1,7 @@
+#macro KEY_PNG	0x474E5089
+#macro KEY_JPG	0xE0FFD8FF
+
+
 #region Old
 //function load_glTF(_path) {
 		
