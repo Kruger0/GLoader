@@ -409,9 +409,6 @@ function GModel(_name = "gmodel") constructor {
 										var _mesh_key = _mesh_keys[l];
 										_this_mesh.name = _mesh[$ "name"] ?? $"mesh_{l}";
 										switch (_mesh_key) {
-											case "name": {
-												
-											} break;	
 											
 											case "primitives": {
 												var _prims = _mesh.primitives;
@@ -424,8 +421,8 @@ function GModel(_name = "gmodel") constructor {
 													var _prim_data		= [];
 													var _prim_flags		= 0x00;
 													var _vbuffer		= vertex_create_buffer();
-													var _this_prim		= new GPrimitive(_this_mesh)
-													var _vtx_id			= undefined
+													var _this_prim		= new GPrimitive(_this_mesh);
+													var _vtx_id			= undefined;
 																																						
 													// Get mesh data 
 													for (var n = 0; n < array_length(_prim_keys); n++) {
@@ -480,7 +477,6 @@ function GModel(_name = "gmodel") constructor {
 																	// If so, reference it and continue
 																	continue;
 																}
-																//show_message(_matl_name)
 																
 																// If not, then load a new one
 																var _this_matl	= new GMaterial();		
@@ -645,13 +641,13 @@ function GModel(_name = "gmodel") constructor {
 		
 		// Clear stuff
 		for (var i = 0; i < array_length(json_root.buffers); i++) {
-			buffer_delete(json_root.buffers[i])
+			buffer_delete(json_root.buffers[i]);
 		}
 		delete json_root;
 		
 		//Loadtime tracing
-		load_time = (get_timer() - load_time)/1_000
-		show_debug_message($"Scene loaded! Load time: {load_time}ms ({load_time/1_000}sec)")
+		load_time = (get_timer() - load_time)/1_000;
+		show_debug_message($"Scene loaded! Load time: {load_time}ms ({load_time/1_000}sec)");
 		
 		return self;
 	}
