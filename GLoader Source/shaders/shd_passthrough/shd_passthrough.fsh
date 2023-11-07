@@ -71,7 +71,7 @@ void main() {
 	
 	
 	// Extract material data
-	float metal_fac	= clamp(metal_rough.b + u_matl_met_rou_cut.r, 0.0, 1.0);
+	float metal_fac	= clamp(metal_rough.b * u_matl_met_rou_cut.r, 0.0, 1.0);
 	float rough_fac	= clamp(metal_rough.g * u_matl_met_rou_cut.g, 0.0, 1.0);
 	float cutof_fac	= u_matl_met_rou_cut.b;
 	
@@ -82,7 +82,7 @@ void main() {
 	
 	// Normal map
 	mat3 TBN = getTBN(normalize(v_normal), view_dir, v_texcoord);
-	//normal = normalize(TBN * normal.rgb);
+	normal = normalize(TBN * normal.rgb);
 	
 	
 	// Compose base + factor + vertex
