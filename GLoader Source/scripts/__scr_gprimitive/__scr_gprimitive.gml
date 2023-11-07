@@ -36,8 +36,8 @@ function GPrimitive(_mesh = undefined) constructor {
 			var _occlusion_tex		= pointer_null;
 			
 			var _base_color_fac		= [1, 1, 1, 1];
-			var _metal_fac			= 1;
-			var _rough_fac			= 0;
+			var _metal_fac			= 0.0;
+			var _rough_fac			= 0.0;
 			var _cutoff				= 0.5;
 			
 
@@ -57,7 +57,6 @@ function GPrimitive(_mesh = undefined) constructor {
 				}
 			}
 			
-			//show_debug_message(material)
 			//show_debug_message(_metal_fac)
 			//show_debug_message(_rough_fac)
 			

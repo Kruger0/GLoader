@@ -55,6 +55,7 @@
     {"resourceType":"GMIncludedFile","resourceVersion":"1.0","name":"Cube.gltf","CopyToMask":-1,"filePath":"datafiles/Cube",},
     {"resourceType":"GMIncludedFile","resourceVersion":"1.0","name":"CubeRotated.gltf","CopyToMask":-1,"filePath":"datafiles",},
     {"resourceType":"GMIncludedFile","resourceVersion":"1.0","name":"DamagedHelmet.glb","CopyToMask":-1,"filePath":"datafiles",},
+    {"resourceType":"GMIncludedFile","resourceVersion":"1.0","name":"dupmaterial.glb","CopyToMask":-1,"filePath":"datafiles",},
     {"resourceType":"GMIncludedFile","resourceVersion":"1.0","name":"Fox.bin","CopyToMask":-1,"filePath":"datafiles",},
     {"resourceType":"GMIncludedFile","resourceVersion":"1.0","name":"Fox.gltf","CopyToMask":-1,"filePath":"datafiles",},
     {"resourceType":"GMIncludedFile","resourceVersion":"1.0","name":"island.glb","CopyToMask":-1,"filePath":"datafiles",},

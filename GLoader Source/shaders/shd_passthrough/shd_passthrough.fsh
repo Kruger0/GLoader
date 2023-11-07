@@ -63,7 +63,7 @@ mat3 getTBN(vec3 normal, vec3 eye, vec2 uv) {
 void main() {
 	
 	// Samplers
-	vec4 base_color		= texture2D(gm_BaseTexture,		v_texcoord);// * u_matl_color;
+	vec4 base_color		= texture2D(gm_BaseTexture,		v_texcoord) * u_matl_color;
 	vec3 normal			= texture2D(u_tex_normal,		v_texcoord).xyz*2.0-1.0;
 	vec4 metal_rough	= texture2D(u_tex_metal_rough,	v_texcoord);
 	vec4 occlusion		= texture2D(u_tex_occlusion,	v_texcoord);
@@ -71,7 +71,7 @@ void main() {
 	
 	
 	// Extract material data
-	float metal_fac	= clamp(metal_rough.b * u_matl_met_rou_cut.r, 0.0, 1.0);
+	float metal_fac	= clamp(metal_rough.b + u_matl_met_rou_cut.r, 0.0, 1.0);
 	float rough_fac	= clamp(metal_rough.g * u_matl_met_rou_cut.g, 0.0, 1.0);
 	float cutof_fac	= u_matl_met_rou_cut.b;
 	
@@ -82,7 +82,7 @@ void main() {
 	
 	// Normal map
 	mat3 TBN = getTBN(normalize(v_normal), view_dir, v_texcoord);
-	normal = normalize(TBN * normal.rgb);
+	//normal = normalize(TBN * normal.rgb);
 	
 	
 	// Compose base + factor + vertex
@@ -132,8 +132,14 @@ void main() {
 	// Debug
 	//final_col.rgb = v_texcoord.rgg;
 	//final_col.rgb = vec3(metal_fac);
-	//final_col.rgb = normal;
-	//final_col.rgb = base_color.rgb;
+	//final_col.rgb = v_normal;
+	//final_col.rgb = base_color	.rgb;
+	//final_col.rgb = normal		.rgb;
+	//final_col.rgb = metal_rough.rgb; // ta como occlusion
+	//final_col.rgb = occlusion.rgb; // ta como metalrough
+	//final_col.rgb = emissive.rgb; // ta como emissive
+	//final_col.rgb = vec3(rough_fac);
+	
 	
 	
 	// Gamma decode

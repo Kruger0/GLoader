@@ -312,21 +312,7 @@ function GModel(_name = "gmodel") constructor {
 					}
 				} break;
 			}
-			
-			// Push default texture indices
-			var _len = array_length(_json.textures)
-			array_push(_json.textures, spr_white)
-			array_push(_json.textures, spr_normal)
-			array_push(_json.textures, spr_metal_rough)
-			array_push(_json.textures, spr_emissive)
-			array_push(_json.textures, spr_occlusion)
-			
-			__def_texid_basecolor	= _len++;
-			__def_texid_normal		= _len++;
-			__def_texid_occlusion	= _len++;
-			__def_texid_emissive	= _len++;
-			__def_texid_metal_rough	= _len;
-		
+
 			return _json
 		}
 		
@@ -337,6 +323,26 @@ function GModel(_name = "gmodel") constructor {
 		
 		// Loads data according to extension type
 		json_root	= __parse2json(_file);
+		
+		// Safe check for textures array
+		json_root[$ "textures"] ??= []
+		
+		
+		// Push default texture indices
+		var _len = array_length(json_root.textures)
+		array_push(json_root.textures, spr_white)
+		array_push(json_root.textures, spr_normal)
+		array_push(json_root.textures, spr_metal_rough)
+		array_push(json_root.textures, spr_emissive)
+		array_push(json_root.textures, spr_occlusion)
+			
+		__def_texid_basecolor	= _len++;
+		__def_texid_normal		= _len++;
+		__def_texid_metal_rough	= _len++;
+		__def_texid_emissive	= _len++;
+		__def_texid_occlusion	= _len;
+		
+		
 		
 		
 		// JSON and pointers are ready, proceeds to assemble scene
@@ -476,7 +482,7 @@ function GModel(_name = "gmodel") constructor {
 																	// If so, reference it and continue
 																	continue;
 																}
-																
+																//show_message(_matl_name)
 																
 																// If not, then load a new one
 																var _this_matl	= new GMaterial();		
@@ -501,7 +507,7 @@ function GModel(_name = "gmodel") constructor {
 																		power(_c_val[2], GAMMA),
 																		power(_c_val[3], GAMMA),
 																	]
-																			
+																	
 																	// Metallic Roughness																			
 																	var _tex_ref				= GET_HASH(_pbr, __hash_metallicRoughnessTexture) RU_SURE
 																	var _tex_id					= GET_HASH(_tex_ref, __hash_index) ?? __def_texid_metal_rough
@@ -539,7 +545,8 @@ function GModel(_name = "gmodel") constructor {
 																
 																
 																// Extensions
-																if !(is_undefined(_matl[$ "extensions"])) {
+																if !(is_undefined(_matl[$ "extensions"])) && false {
+																	
 																	// Dirty base color
 																	var _tex_id		= _matl.extensions.KHR_materials_pbrSpecularGlossiness.diffuseTexture.index
 																	var _spr		= json_root.textures[_tex_id]
@@ -552,7 +559,7 @@ function GModel(_name = "gmodel") constructor {
 																}
 																
 																self.materials[$ _matl_name] = _this_matl
-
+																
 															} break;													
 															
 															case "mode": {
@@ -602,7 +609,7 @@ function GModel(_name = "gmodel") constructor {
 															vertex_normal(_vbuffer, _norm[0], _norm[1], _norm[2])
 															vertex_texcoord(_vbuffer, _uv[0], _uv[1])
 														}
-
+														
 													vertex_end(_vbuffer)
 													vtx_count += _vtx;
 													
