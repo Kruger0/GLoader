@@ -19,7 +19,7 @@ function GMesh(_model = undefined) constructor {
 	}
 	
 	static Submit = function() {
-		static _u_inv_model_mat	= shader_get_uniform(shd_passthrough, "u_inv_model_mat");
+		static _u_inv_model_mat	= shader_get_uniform(__shd_passthrough, "u_inv_model_mat");
 
 		// Update matrices - TODO: optmize static meshes and do some better caching
 		world_matrix		= matrix_get(matrix_world)

@@ -33,8 +33,7 @@ var _files = [
 
 var _index = 17
 //model = new GModel().Load(_files[_index-2]+".glb").Freeze()
-//model = new GModel().Load("2CylinderEngine.gltf").Freeze()
-model = new GModel().Load("single_objects.glb").Freeze()
+model = new GModel().Load("2CylinderEngine.gltf").Freeze()
 
 show_debug_overlay(true)
 
@@ -42,7 +41,7 @@ show_debug_overlay(true)
 cam = new Camera3D(-20, 0, 0, 0, 0, 1, 0, 0, 1, 70, 16/9, 0.5, 16000)
 
 
-u_tex_environment = shader_get_sampler_index(shd_passthrough, "u_tex_environment")
+u_tex_environment = shader_get_sampler_index(__shd_passthrough, "u_tex_environment")
 tex_environment = sprite_get_texture(spr_environment, 0)
 
 

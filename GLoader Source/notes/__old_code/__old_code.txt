@@ -529,3 +529,44 @@
 		}
 		return self;
 	}
+	
+	
+	
+	
+	
+	//for (var i = array_length(_nodes); i--;) {	
+	//	var _node		= _nodes[i];
+	//	var _parent		= _node
+	//	if (_node[$ "children"] != undefined) {
+							
+	//	// Transform next nodes
+	//		var _parent_matrix = __gl_get_node_matrix(_node)
+	//		for (var l = array_length(_node.children); l--;) {
+	//			var _child_id	= _node.children[l];
+	//			var _child		= _nodes[_child_id]
+	//			var _child_mat	= __gl_get_node_matrix(_child)
+	//			var _new_mat	= matrix_multiply(_child_mat, _parent_matrix)
+	//			_child.matrix	= _new_mat
+	//		}
+	//	}
+	//}
+	
+	
+	
+	// Check for childrens - TODO: make this recursive somehow
+	//for (var j = array_length(_nodes); j--;) {	
+	//	var _node		= _nodes[j];
+	//	var _parent		= _node
+	//	if (_node[$ "children"] != undefined) {
+							
+	//	// Transform next nodes
+	//		var _parent_matrix = __get_node_matrix(_node)
+	//		for (var l = array_length(_node.children); l--;) {
+	//			var _child_id	= _node.children[l];
+	//			var _child		= _nodes[_child_id]
+	//			var _child_mat	= __get_node_matrix(_child)
+	//			var _new_mat	= matrix_multiply(_child_mat, _parent_matrix)
+	//			_child.matrix	= _new_mat
+	//		}
+	//	}
+	//}

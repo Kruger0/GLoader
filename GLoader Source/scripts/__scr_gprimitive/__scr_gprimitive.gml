@@ -11,20 +11,20 @@ function GPrimitive(_mesh = undefined) constructor {
 	transform_matrix	= matrix_build_identity()
 	
 	static Submit = function() {
-		static _tex_white			= sprite_get_texture(spr_white, 0);
+		static _tex_white			= sprite_get_texture(__spr_white, 0);
 		
-		static _tex_metal_rough		= sprite_get_texture(spr_metal_rough, 0);
-		static _tex_normal			= sprite_get_texture(spr_normal, 0);
-		static _tex_emissive		= sprite_get_texture(spr_emissive, 0);
-		static _tex_occlusion		= sprite_get_texture(spr_occlusion, 0);
+		static _tex_metal_rough		= sprite_get_texture(__spr_metal_rough, 0);
+		static _tex_normal			= sprite_get_texture(__spr_normal, 0);
+		static _tex_emissive		= sprite_get_texture(__spr_emissive, 0);
+		static _tex_occlusion		= sprite_get_texture(__spr_occlusion, 0);
 		
-		static _u_tex_metal_rough	= shader_get_sampler_index(shd_passthrough, "u_tex_metal_rough");
-		static _u_tex_normal		= shader_get_sampler_index(shd_passthrough, "u_tex_normal");
-		static _u_tex_emissive		= shader_get_sampler_index(shd_passthrough, "u_tex_emissive");
-		static _u_tex_occlusion		= shader_get_sampler_index(shd_passthrough, "u_tex_occlusion");
+		static _u_tex_metal_rough	= shader_get_sampler_index(__shd_passthrough, "u_tex_metal_rough");
+		static _u_tex_normal		= shader_get_sampler_index(__shd_passthrough, "u_tex_normal");
+		static _u_tex_emissive		= shader_get_sampler_index(__shd_passthrough, "u_tex_emissive");
+		static _u_tex_occlusion		= shader_get_sampler_index(__shd_passthrough, "u_tex_occlusion");
 		
-		static _u_base_color_fac	= shader_get_uniform(shd_passthrough, "u_matl_color");
-		static _u_matl_met_rou_cut	= shader_get_uniform(shd_passthrough, "u_matl_met_rou_cut");
+		static _u_base_color_fac	= shader_get_uniform(__shd_passthrough, "u_matl_color");
+		static _u_matl_met_rou_cut	= shader_get_uniform(__shd_passthrough, "u_matl_met_rou_cut");
 		
 		if (vbuffer != undefined) {
 			var _shader			= shader_current();

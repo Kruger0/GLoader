@@ -25,8 +25,8 @@
   "nineSlice": null,
   "origin": 0,
   "parent": {
-    "name": "Textures",
-    "path": "folders/GLoader/Textures.yy",
+    "name": "GLoader-Source",
+    "path": "GLoader-Source.yyp",
   },
   "preMultiplyAlpha": false,
   "sequence": {
