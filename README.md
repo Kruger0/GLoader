@@ -12,7 +12,7 @@
 * Metallic, Roughness, Emissive and Occlusion maps
 * Vertex colors*
 * Local transformations
-* Object parenting**
+* Object parenting transformations
 * Embbed and included file loading
 * Custom render engine
 * PBR material rendering
