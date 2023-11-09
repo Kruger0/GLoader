@@ -1,4 +1,4 @@
-<h1 align="center">glTF Loader v0.8.8</h1>
+<h1 align="center">glTF Loader v0.9.0</h1>
 
 [![Watch the video](https://img.youtube.com/vi/U9TGZyP0vnY/maxresdefault.jpg)](https://youtu.be/U9TGZyP0vnY)
 
