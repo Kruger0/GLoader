@@ -7,22 +7,30 @@
 
 #macro GET_HASH struct_get_from_hash
 #macro SET_HASH variable_get_hash
-#macro GAMMA 1/2.2
 
 
-vertex_format_begin() {						// Size
-	vertex_format_add_position_3d()			// 12
-	vertex_format_add_color()				// 4
-	vertex_format_add_normal()				// 12
-	vertex_format_add_texcoord()			// 8
-	global.vformat = vertex_format_end()	// --> 36
+vertex_format_begin() {													// Size
+	vertex_format_add_position_3d()										// 12
+	vertex_format_add_color()											// 4
+	vertex_format_add_normal()											// 12
+	vertex_format_add_texcoord()										// 8
+	__gl_cache().vform_PCNT = vertex_format_end()						// --> 36
+}
+
+
+vertex_format_begin() {													// Size
+	vertex_format_add_position_3d()										// 12
+	vertex_format_add_color()											// 4
+	vertex_format_add_normal()											// 12
+	vertex_format_add_texcoord()										// 8
+	vertex_format_add_custom(vertex_type_float4, vertex_usage_texcoord)	// 8
+	vertex_format_add_custom(vertex_type_float4, vertex_usage_texcoord)	// 8
+	__gl_cache().vform_PCNTBB = vertex_format_end()						// --> 52
 }
 				    
 #macro KEY_GLTF	0x46546C67
 #macro KEY_JSON 0x4E4F534A
 #macro KEY_BIN	0x004E4942
-
-	
 #macro SIZE_U32	4
 
 //0x0AA10A0D474E5089 - I don't remember what is that but keep it there till I discover
@@ -61,20 +69,20 @@ enum BufferViewTarget {
 	ARRAY_BUFFER			= 34962,
 	ELEMENT_ARRAY_BUFFER	= 34963,
 }
-	
+
 enum PrimitiveMode {
-	POINTS,
-	LINES,
-	LINE_LOOP,
-	LINE_STRIP,
-	TRIANGLES,
-	TRIANGLE_LIST,
-	TRIANGLE_FAN,
+	POINTS,			// pr_pointlist
+	LINES,			// pr_linelist
+	LINE_LOOP,		// GM doens't have one
+	LINE_STRIP,		// pr_linestrip
+	TRIANGLES,		// pr_trianglestrip
+	TRIANGLE_LIST,	// pr_trianglelist
+	TRIANGLE_FAN,	// pr_trianglefan
 }
 
 enum MagFilter {
-	NEAREST = 9728,
-	LINEAR	= 9729,
+	NEAREST					= 9728,
+	LINEAR					= 9729,
 }
 	
 enum MinFilter {

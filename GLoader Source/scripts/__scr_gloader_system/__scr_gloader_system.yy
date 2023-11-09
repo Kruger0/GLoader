@@ -1,7 +1,7 @@
 {
   "resourceType": "GMScript",
   "resourceVersion": "1.0",
-  "name": "__scr_gloader_funcs",
+  "name": "__scr_gloader_system",
   "isCompatibility": false,
   "isDnD": false,
   "parent": {

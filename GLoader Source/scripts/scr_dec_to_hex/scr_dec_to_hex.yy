@@ -1,11 +1,11 @@
 {
   "resourceType": "GMScript",
   "resourceVersion": "1.0",
-  "name": "__scr_GCache",
+  "name": "scr_dec_to_hex",
   "isCompatibility": false,
   "isDnD": false,
   "parent": {
-    "name": "Classes",
-    "path": "folders/GLoader/Classes.yy",
+    "name": "ULib",
+    "path": "folders/GLoader/Extensions - Will rearrange latter/ULib.yy",
   },
 }

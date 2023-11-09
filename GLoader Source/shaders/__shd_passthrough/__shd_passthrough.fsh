@@ -139,11 +139,12 @@ void main() {
 	//final_col.rgb = occlusion.rgb; // ta como metalrough
 	//final_col.rgb = emissive.rgb; // ta como emissive
 	//final_col.rgb = vec3(rough_fac);
+	//final_col.rgb = u_matl_color.rgb;
 	
 	
 	
 	// Gamma decode
-	final_col.rgb = pow(final_col.rgb, vec3(GAMMA));
+	//final_col.rgb = pow(final_col.rgb, vec3(GAMMA));
 	
 	// Color output
     gl_FragColor = final_col;

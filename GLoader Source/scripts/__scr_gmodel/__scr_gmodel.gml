@@ -13,6 +13,15 @@ function GModel(_name = "gmodel") constructor {
 	load_time	= 0;
 	world_matrix	= matrix_build_identity()
 	
+	aabb = {
+	    x1 : 0,
+	    y1 : 0,
+	    z1 : 0,
+	    x2 : 0,
+	    y2 : 0,
+	    z2 : 0,
+	};
+	
 	static Load = function(_file) {
 		
 		filename = _file
@@ -22,19 +31,6 @@ function GModel(_name = "gmodel") constructor {
 		__gl_trace("Scene load started!");
 		
 		static __matl_num	= 0;
-		
-		static __def_col	= [1, 1, 1, 1];
-		static __def_norm	= [0, 1, 1];
-		static __def_uv		= [0, 0];
-		
-		static __def_fac_metal	= 1;
-		static __def_fac_rough	= 1;
-		
-		static __def_texid_basecolor	= 0
-		static __def_texid_normal		= 0
-		static __def_texid_occlusion	= 0
-		static __def_texid_emissive		= 0
-		static __def_texid_metal_rough	= 0
 		
 		static __hash_index						= SET_HASH("index")
 		static __hash_name						= SET_HASH("name")
@@ -48,66 +44,23 @@ function GModel(_name = "gmodel") constructor {
 		static __hash_emissiveTexture			= SET_HASH("emissiveTexture")
 		static __hash_pbrMetallicRoughness		= SET_HASH("pbrMetallicRoughness")
 		
-		
-		static __transform_child_matrices = function(_nodes) {
-			//// Set the matrix of each mesh before building the vbuffer
-			//for (var i = array_length(_nodes); i--;) {	
-			//	var _node		= _nodes[i];
-			//	var _parent		= _node
-			//	if (_node[$ "children"] != undefined) {
-			//		// Transform next nodes
-			//		// TODO: wondering if matrix stack functions are better for that
-			//		var _parent_matrix = __get_node_matrix(_node)
-			//		for (var l = array_length(_node.children); l--;) {
-			//			var _child_id	= _node.children[l];
-			//			var _child		= _nodes[_child_id]
-			//			var _child_mat	= __get_node_matrix(_child)
-			//			var _new_mat	= matrix_multiply(_child_mat, _parent_matrix)
-			//			_child.matrix	= _new_mat
-			//		}
-			//	}				
-			//}
-		}
-		
-		
-		
 		// Loads data according to extension type
 		json_root	= __gl_parse2json(_file);
 		
-		// Safe check for textures array
-		json_root[$ "textures"] ??= []
-		
-		
-		// Push default texture indices
-		var _len = array_length(json_root.textures)
-		array_push(json_root.textures, __spr_white)
-		array_push(json_root.textures, __spr_normal)
-		array_push(json_root.textures, __spr_metal_rough)
-		array_push(json_root.textures, __spr_emissive)
-		array_push(json_root.textures, __spr_occlusion)
-			
-		__def_texid_basecolor	= _len++;
-		__def_texid_normal		= _len++;
-		__def_texid_metal_rough	= _len++;
-		__def_texid_emissive	= _len++;
-		__def_texid_occlusion	= _len;
-		
-		
-		
-		
-		
 		// Get root nodes
-		for (var i = 0; i < array_length(json_root.scenes); i++) {
-			var _scene = json_root.scenes[i]
-			var _root_nodes = _scene.nodes
+		if (json_root[$ "scenes"] != undefined) {
+			for (var i = 0; i < array_length(json_root.scenes); i++) {
+				var _scene = json_root.scenes[i]
+				var _root_nodes = _scene.nodes
+				
+				// Recursivelly transform it childrens
+				for (var j = 0; j < array_length(_root_nodes); j++) {
+					var _node = json_root.nodes[_root_nodes[j]]
 			
-			// Recursivelly transform it childrens
-			for (var j = 0; j < array_length(_root_nodes); j++) {
-				var _node = json_root.nodes[_root_nodes[j]]
-
-				if (_node[$ "children"] != undefined) {
-					var _node_mat = __gl_get_node_matrix(_node)
-					__gl_transform_childrens(json_root, _node, _node_mat)
+					if (_node[$ "children"] != undefined) {
+						var _node_mat = __gl_get_node_matrix(_node)
+						__gl_transform_childrens(json_root, _node, _node_mat)
+					}
 				}
 			}
 		}
@@ -159,6 +112,8 @@ function GModel(_name = "gmodel") constructor {
 										var _vbuffer		= vertex_create_buffer();
 										var _this_prim		= new GPrimitive(_this_mesh);
 										var _vtx_id			= undefined;
+										var _cache_defaults	= __gl_cache().defaults;
+										var _cache_textures	= __gl_cache().textures;
 																																						
 										// Get mesh data 
 										for (var n = 0; n < array_length(_prim_keys); n++) {
@@ -216,62 +171,75 @@ function GModel(_name = "gmodel") constructor {
 																
 													// If not, then load a new one
 													var _this_matl	= new GMaterial();		
-													_this_matl.name = _matl_name;
-																
+													_this_matl.name = _matl_name;																
 																
 													// PBR
 													var _pbr = GET_HASH(_matl, __hash_pbrMetallicRoughness);
 													if !(is_undefined(_pbr)) {
 																	
 														// Base Color
-														var _tex_ref				= GET_HASH(_pbr, __hash_baseColorTexture) ?? {}
-														var _tex_id					= GET_HASH(_tex_ref, __hash_index) ?? __def_texid_basecolor
-														var _spr					= json_root.textures[_tex_id]
-														_this_matl.base_color_tex	= sprite_get_texture(_spr, 0)
+														var _tex_ref					= GET_HASH(_matl, __hash_baseColorTexture);
+														if (_tex_ref != undefined) {
+															_tex_id						= GET_HASH(_tex_ref, __hash_index)
+															_this_matl.base_color_tex	= sprite_get_texture(json_root.textures[_tex_id], 0);
+														} else {
+															_this_matl.base_color_tex	= _cache_textures.base_color;
+														}
 																			
-														var _c_val	= GET_HASH(_pbr, __hash_baseColorFactor) ?? __def_col;
+														var _c_val	= GET_HASH(_pbr, __hash_baseColorFactor) ?? _cache_defaults.color;
 														_this_matl.base_color_fac = [
 															// Gamma space convertion - readjust on shader
-															power(_c_val[0], GAMMA),
-															power(_c_val[1], GAMMA),
-															power(_c_val[2], GAMMA),
-															power(_c_val[3], GAMMA),
+															power(_c_val[0], GLOADER_GAMMA),
+															power(_c_val[1], GLOADER_GAMMA),
+															power(_c_val[2], GLOADER_GAMMA),
+															power(_c_val[3], GLOADER_GAMMA),
 														]
 																	
 														// Metallic Roughness																			
-														var _tex_ref				= GET_HASH(_pbr, __hash_metallicRoughnessTexture) ?? {}
-														var _tex_id					= GET_HASH(_tex_ref, __hash_index) ?? __def_texid_metal_rough
-														var _spr					= json_root.textures[_tex_id]
-														_this_matl.metal_rough_tex	= sprite_get_texture(_spr, 0)
+														var _tex_ref					= GET_HASH(_matl, __hash_metallicRoughnessTexture);
+														if (_tex_ref != undefined) {
+															_tex_id						= GET_HASH(_tex_ref, __hash_index)
+															_this_matl.metal_rough_tex	= sprite_get_texture(json_root.textures[_tex_id], 0);
+														} else {
+															_this_matl.metal_rough_tex	= _cache_textures.metal_rough;
+														}
 																			
-														_this_matl.metal_fac = GET_HASH(_pbr, __hash_metallicFactor) ?? __def_fac_metal;
-														_this_matl.rough_fac = GET_HASH(_pbr, __hash_roughnessFactor) ?? __def_fac_rough;
+														_this_matl.metal_fac = GET_HASH(_pbr, __hash_metallicFactor) ?? _cache_defaults.metal;
+														_this_matl.rough_fac = GET_HASH(_pbr, __hash_roughnessFactor) ?? _cache_defaults.roughness;
 													}
 																
 													// Normal
-													var _tex_ref			= GET_HASH(_matl, __hash_normalTexture) ?? {};
-													var _tex_id				= GET_HASH(_tex_ref, __hash_index) ?? __def_texid_normal;
-													var _spr				= json_root.textures[_tex_id];
-													_this_matl.normal_tex	= sprite_get_texture(_spr, 0);
-																
-																
+													var _tex_ref					= GET_HASH(_matl, __hash_normalTexture);
+													if (_tex_ref != undefined) {	
+														_tex_id						= GET_HASH(_tex_ref, __hash_index)
+														_this_matl.normal_tex		= sprite_get_texture(json_root.textures[_tex_id], 0);
+													} else {						
+														_this_matl.normal_tex		= _cache_textures.normal;
+													}
+																													
 													// Occlusion
-													var _tex_ref			= GET_HASH(_matl, __hash_occlusionTexture) ?? {};
-													var _tex_id				= GET_HASH(_tex_ref, __hash_index) ?? __def_texid_occlusion;
-													var _spr				= json_root.textures[_tex_id];
-													_this_matl.occlusion_tex= sprite_get_texture(_spr, 0);
+													var _tex_ref					= GET_HASH(_matl, __hash_occlusionTexture);
+													if (_tex_ref != undefined) {
+														_tex_id						= GET_HASH(_tex_ref, __hash_index)
+														_this_matl.occlusion_tex	= sprite_get_texture(json_root.textures[_tex_id], 0);
+													} else {
+														_this_matl.occlusion_tex	= _cache_textures.occlusion;
+													}
 																
 																
 													// Emissive
-													var _tex_ref			= GET_HASH(_matl, __hash_emissiveTexture) ?? {};
-													var _tex_id				= GET_HASH(_tex_ref, __hash_index) ?? __def_texid_emissive;
-													var _spr				= json_root.textures[_tex_id];
-													_this_matl.emissive_tex	= sprite_get_texture(_spr, 0);
-													_this_matl.emissive_fac	= _matl[$ "emissiveFactor"] ?? 0;
+													var _tex_ref					= GET_HASH(_matl, __hash_emissiveTexture);
+													if (_tex_ref != undefined) {
+														_tex_id						= GET_HASH(_tex_ref, __hash_index)
+														_this_matl.emissive_tex	= sprite_get_texture(json_root.textures[_tex_id], 0);
+													} else {
+														_this_matl.emissive_tex	= _cache_textures.emissive;
+													}
+													_this_matl.emissive_fac	= _matl[$ "emissiveFactor"] ?? _cache_defaults.emissive;
 																
 													// Alpha
 													_this_matl.alpha_mode	= _matl[$ "alphaMode"] ?? "OPAQUE";
-													_this_matl.alpha_cutoff = _matl[$ "alphaCutoff"] ?? 0.5;
+													_this_matl.alpha_cutoff = _matl[$ "alphaCutoff"] ?? _cache_defaults.alpha_cutoff;
 																
 																
 													// Extensions
@@ -303,7 +271,7 @@ function GModel(_name = "gmodel") constructor {
 										}
 																										
 										// Mesh data collected, now assemble it
-										vertex_begin(_vbuffer, global.vformat)											
+										vertex_begin(_vbuffer, __gl_cache().vform_PCNT)											
 													
 											var _flag_col	= _prim_flags >> Attributes.Color & 0x01;
 											var _flag_uv	= _prim_flags >> Attributes.TexCoord & 0x01;
@@ -319,23 +287,23 @@ function GModel(_name = "gmodel") constructor {
 											}
 														
 											var _prim_pos		= _prim_data[Attributes.Position]
-											var _prim_color		= _flag_col		? _prim_data[Attributes.Color]		: __def_col
-											var _prim_normal	= _flag_norm	? _prim_data[Attributes.Normal]		: __def_norm
-											var _prim_texcoord	= _flag_uv		? _prim_data[Attributes.TexCoord]	: __def_uv
+											var _prim_color		= _flag_col		? _prim_data[Attributes.Color]		: _cache_defaults.color;
+											var _prim_normal	= _flag_norm	? _prim_data[Attributes.Normal]		: _cache_defaults.normal;
+											var _prim_texcoord	= _flag_uv		? _prim_data[Attributes.TexCoord]	: _cache_defaults.texcoord;
 														
 											var _id = 0;
 											for (var _vtx = 0; _vtx < _arr_length; _vtx++) {
 												_id = _is_indexed ? _vtx_id[_vtx] : _vtx;
 	
 												var _pos	= _prim_pos[_id]
-												var _col	= _flag_col		? _prim_color[_id]		: __def_col;
-												var _norm	= _flag_norm	? _prim_normal[_id]		: __def_norm;
-												var _uv		= _flag_uv		? _prim_texcoord[_id]	: __def_uv;
+												var _col	= _flag_col		? _prim_color[_id]		: _cache_defaults.color;
+												var _norm	= _flag_norm	? _prim_normal[_id]		: _cache_defaults.normal;
+												var _uv		= _flag_uv		? _prim_texcoord[_id]	: _cache_defaults.texcoord;
 							
 												var _col_rgb = (_col[2] * 0xff << 16) | (_col[1] * 0xff << 8) | (_col[0] * 0xff)
 															
 												vertex_position_3d(_vbuffer, _pos[0], _pos[1], _pos[2])
-												vertex_color(_vbuffer, _col_rgb, _col[3]*0xff)
+												vertex_color(_vbuffer, _col_rgb, _col[3] * 0xff)
 												vertex_normal(_vbuffer, _norm[0], _norm[1], _norm[2])
 												vertex_texcoord(_vbuffer, _uv[0], _uv[1])
 											}
@@ -353,7 +321,7 @@ function GModel(_name = "gmodel") constructor {
 								} break;
 											
 								case "weights": {
-									// skeletal animation stuff
+									// Skeletal animation stuff
 								} break;
 							}
 						}
@@ -422,10 +390,18 @@ function GModel(_name = "gmodel") constructor {
 		return self;
 	}
 	
+	static Render = function() {
+		
+	}
+	
 	static Freeze = function() {
 		for (var i = array_length(meshes) - 1; i >= 0; --i)	{
 			meshes[i].Freeze();
 		}
 		return self;
+	}
+
+	static GetAABB = function() {
+		return aabb;
 	}
 }

@@ -1,6 +1,53 @@
 
+
+
+// Caching information for glTF loader
+function __gl_cache() constructor {
+	static data = {
+		
+		trace				: true,
+		vform_PCNT			: undefined,
+		vform_PCNTBB		: undefined,
+		
+		materials : {
+			
+		},
+		
+		defaults : {
+			alpha_cutoff	: GLOADER_DEFAULT_ALPHA_CUTOFF,
+			color			: GLOADER_DEFAULT_COLOR,
+			normal			: GLOADER_DEFAULT_NORMAL,
+			texcoord		: GLOADER_DEFAULT_TEXCOORD,
+			
+			scale			: GLOADER_DEFAULT_SCALE,
+			rotation		: GLOADER_DEFAULT_ROTATION,
+			translation		: GLOADER_DEFAULT_TRANSLATION,
+			
+			metal			: GLOADER_DEFAULT_METAL,
+			roughness		: GLOADER_DEFAULT_ROUGHNESS,
+			emissive		: GLOADER_DEFAULT_EMISSIVE,
+		},
+		
+		textures : {
+			base_color	: sprite_get_texture(__spr_white, 0),
+			metal_rough	: sprite_get_texture(__spr_metal_rough, 0),
+			normal		: sprite_get_texture(__spr_normal, 0),
+			emissive	: sprite_get_texture(__spr_emissive, 0),
+			occlusion	: sprite_get_texture(__spr_occlusion, 0),
+		},
+		
+		uniforms : {
+			
+		},
+	}
+	
+	return data;
+}
+
+
+
 function __gl_trace(_string) {
-	if (__gcache().trace) {
+	if (__gl_cache().trace) {
 		show_debug_message($"Gloader: {_string}")
 	}
 }
@@ -90,7 +137,7 @@ function __gl_parse2json(_file) {
 		case ".gltf": {
 			// Load base file
 			var _buffer		= buffer_load(_file);
-			if (_buffer == -1) __gl_error($"Coulnd't load file \"{_file}\"", true)
+			if (_buffer == -1) __gl_error($"Coulnd't load file \"{_file}\"")
 			var _string		= buffer_read(_buffer, buffer_string);
 			_json			= json_parse(_string);
 			buffer_delete(_buffer)
@@ -109,7 +156,7 @@ function __gl_parse2json(_file) {
 				} else if (file_exists(_path_bin)) {
 					_buff = buffer_load(_path_bin);
 				} else {
-					__gl_error($"Can't load buffer \"{i}\" from file \"{_file}\"", true);
+					__gl_error($"Can't load buffer \"{i}\" from file \"{_file}\"");
 				}
 
 				_json.buffers[i] = _buff;
@@ -166,6 +213,20 @@ function __gl_parse2json(_file) {
 }
 
 
+function __gl_get_component_type(_component_type) {
+	var _type = undefined;
+	switch (_component_type) {		
+		case ComponentType.BYTE:			{ _type = buffer_s8		} break;
+		case ComponentType.UNSIGNED_BYTE:	{ _type = buffer_u8		} break;
+		case ComponentType.SHORT:			{ _type = buffer_s16	} break;
+		case ComponentType.UNSIGNED_SHORT:	{ _type = buffer_u16	} break;
+		case ComponentType.UNSIGNED_INT:	{ _type = buffer_u32	} break;
+		case ComponentType.FLOAT:			{ _type = buffer_f32	} break;
+	}
+	return _type;
+}
+
+
 function __gl_load_accessor(_json, _acess_index) {
 			
 	static __hash_byteOffset = SET_HASH("byteOffset");
@@ -174,16 +235,7 @@ function __gl_load_accessor(_json, _acess_index) {
 	var _acess			= _json.accessors[_acess_index];
 	var _buff_view		= _json.bufferViews[_acess.bufferView];
 	var _buff_id		= _json.buffers[_buff_view.buffer];
-			
-	var _type = undefined
-	switch (_acess.componentType) {		
-		case ComponentType.BYTE:			{ _type = buffer_s8		} break;
-		case ComponentType.UNSIGNED_BYTE:	{ _type = buffer_u8		} break;
-		case ComponentType.SHORT:			{ _type = buffer_s16	} break;
-		case ComponentType.UNSIGNED_SHORT:	{ _type = buffer_u16	} break;
-		case ComponentType.UNSIGNED_INT:	{ _type = buffer_u32	} break;
-		case ComponentType.FLOAT:			{ _type = buffer_f32	} break;
-	}
+	var _type			= __gl_get_component_type(_acess.componentType)
 
 	var _size = undefined;
 	switch (_acess.type) {
@@ -198,58 +250,127 @@ function __gl_load_accessor(_json, _acess_index) {
 			
 	var _type_size		= buffer_sizeof(_type);
 	var _group_size		= _size * _type_size;
-	var _view_count		= _acess.count;
-	var _view_offset	= struct_get_from_hash(_acess, __hash_byteOffset) ?? 0
-	var _buff_offset	= struct_get_from_hash(_buff_view, __hash_byteOffset) ?? 0
-	var _buff_stride	= struct_get_from_hash(_buff_view, __hash_byteStride) ?? _group_size
+	var _view_count		= _acess.count; 
+	var _view_offset	= GET_HASH(_acess, __hash_byteOffset) ?? 0
+	var _buff_offset	= GET_HASH(_buff_view, __hash_byteOffset) ?? 0
+	var _buff_stride	= GET_HASH(_buff_view, __hash_byteStride) ?? _group_size
 	var _buff_length	= _buff_view.byteLength;
 	var _total_offset	= _view_offset + _buff_offset;
 	var _byte_stride	= _buff_stride - _group_size;
-			
-	buffer_seek(_buff_id, buffer_seek_start, _total_offset);		
+				
+	
+	// In case of sparse acessor
+	var _has_sparse = false;
+	var _sps_arr = [[], []];
+	if (_acess[$ "sparse"] != undefined) {
+		_has_sparse		= true;
+		var _sps		= _acess.sparse
+		var _sps_count	= _sps.count;
+		var _sps_indices= _sps.indices;
+		var _sps_values	= _sps.values;
 		
+		// Indices
+		var _sps_ind_buff_view	= _json.bufferViews[_sps.indices.bufferView]
+		var _sps_ind_buff_off	= _sps_ind_buff_view.byteOffset
+		var _sps_ind_buff_id	= _json.buffers[_sps_ind_buff_view.buffer]
+		var _sps_ind_byte_off	= _sps.indices.byteOffset
+		var _sps_ind_type		= __gl_get_component_type(_sps_indices.componentType); // Prolly this is unnecessary as indices should be only u16
+		var _sps_ind_size		= buffer_sizeof(_sps_ind_type);
+		
+		// Values
+		var _sps_val_buff_view	= _json.bufferViews[_sps.values.bufferView]
+		var _sps_val_buff_off	= _sps_val_buff_view.byteOffset
+		var _sps_val_buff_id	= _json.buffers[_sps_val_buff_view.buffer]
+		var _sps_val_byte_off	= _sps.values.byteOffset
+		
+		// Save sparse data in an array
+		buffer_seek(_sps_ind_buff_id, buffer_seek_start, _sps_ind_byte_off + _sps_ind_buff_off);
+		
+		var _indice = 0;
+		repeat(_sps.count) {
+			// Store indices
+			var _ind_offset = _indice * _sps_ind_size;
+			buffer_seek(_sps_ind_buff_id, buffer_seek_start, _sps_ind_byte_off + _sps_ind_buff_off + _ind_offset);
+			array_push(_sps_arr[0], buffer_read(_sps_ind_buff_id, _sps_ind_type))
+			
+			// Store values
+			var _val_offset = (_indice * _size) * _type_size
+			buffer_seek(_sps_val_buff_id, buffer_seek_start, _sps_val_byte_off + _sps_val_buff_off + _val_offset);
+			if (_size > 1) {
+				var _group_arr = []
+				repeat(_size) {
+					var _reading = buffer_read(_sps_val_buff_id, _type)
+					array_push(_group_arr, _reading)
+				}
+				array_push(_sps_arr[1], _group_arr)
+				buffer_seek(_sps_val_buff_id, buffer_seek_relative, _byte_stride);	// Prolly it wouldn't have any byte stride but anyway...
+			} else {
+				var _reading = buffer_read(_sps_val_buff_id, _type);
+				array_push(_sps_arr[1], _reading);
+				buffer_seek(_sps_val_buff_id, buffer_seek_relative, _byte_stride);
+			}
+			_indice++;
+		}
+	}
+	var _sps_indice = 0;
+	var _sps_size	= array_length(_sps_arr[0]);
+	
+	
+	// Start readings
+	buffer_seek(_buff_id, buffer_seek_start, _total_offset);
 	var _arr = [];
-	while (buffer_tell(_buff_id) != _total_offset + _buff_length) {
+	var _indice = 0
+	
+
+	repeat(_view_count) {
+		
+		// Check indices in sparse acessor fist so wouldn't need a second loop
+		if (_has_sparse) {
+			if !(_sps_indice >= _sps_size) {	// It's short of a failsafe required by first looking onto the sparse and THEN the "original" data
+				if (_indice == _sps_arr[0][_sps_indice]) {
+					array_push(_arr, _sps_arr[1][_sps_indice]);
+					buffer_seek(_buff_id, buffer_seek_relative, _group_size)
+					_indice++;
+					_sps_indice++;
+					continue;
+				}
+			}
+		}
+		
+		// If not in sparse, read the orignal data
 		if (_size > 1) {
 			var _group_arr = [];
 			repeat(_size) {
 				// For some reason the color value goes way higher so this division fix it
-				// Edit: this fix is dumb cuz there are colors in VEC3 :(
+				// Edit: this fix is dumb cuz there may be colors in VEC3 :(
 				var _color_fix = (_size == 4 && _type == buffer_u16 ? 65535 : 1)
-				array_push(_group_arr, buffer_read(_buff_id, _type) / _color_fix);
+				
+				var _reading = buffer_read(_buff_id, _type) / _color_fix
+				array_push(_group_arr, _reading);
 			}
-					
 			array_push(_arr, _group_arr);
-			buffer_seek(_buff_id, buffer_seek_relative, _byte_stride);
-					
-			//show_debug_message(_group_arr)
+			buffer_seek(_buff_id, buffer_seek_relative, _byte_stride);	
 		} else {
-			var _scale = buffer_read(_buff_id, _type)
-					
-			array_push(_arr, _scale);
+			var _reading = buffer_read(_buff_id, _type)	
+			array_push(_arr, _reading);
 			buffer_seek(_buff_id, buffer_seek_relative, _byte_stride);
 		}
-		_view_count--
-		if !(_view_count) break;
-				
+		_indice++;
 	}	
-	//show_message("Finished a reading!")
+
 	return _arr;
 }
 
 
 function __gl_get_node_matrix(_node) {
-	static __def_scl	= [1, 1, 1];
-	static __def_rot	= [0, 0, 0, 1];
-	static __def_trl	= [0, 0, 0];
 	
 	var _model_matrix	= _node[$ "matrix"]
 	if !(is_undefined(_model_matrix)) {
 		//_model_matrix = (_model_matrix) // TODO: check if its necessary
 	} else {
-		var _trl	= _node[$ "translation"]	?? __def_trl;
-		var _rot	= _node[$ "rotation"]		?? __def_rot;
-		var _scl	= _node[$ "scale"]			?? __def_scl;									
+		var _trl	= _node[$ "translation"]	?? __gl_cache().defaults.translation;
+		var _rot	= _node[$ "rotation"]		?? __gl_cache().defaults.rotation;
+		var _scl	= _node[$ "scale"]			?? __gl_cache().defaults.scale;									
 												
 		var _mat_t = matrix_build(				_trl[0], _trl[1], _trl[2],	0, 0, 0,		1, 1, 1);
 		var _mat_r = matrix_build_quaternion(	0, 0, 0,					_rot,			1, 1, 1);

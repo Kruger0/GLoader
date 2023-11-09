@@ -37,6 +37,10 @@ function GMesh(_model = undefined) constructor {
 		return self;
 	}
 	
+	static Render = function() {
+		
+	}
+	
 	static Delete = function() {
 		if (vbuffer != undefined) {
 			vertex_delete_buffer(vbuffer);

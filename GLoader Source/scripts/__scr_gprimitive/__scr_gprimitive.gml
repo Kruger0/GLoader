@@ -3,7 +3,8 @@
 function GPrimitive(_mesh = undefined) constructor {
 	mesh				= _mesh
 	vbuffer				= undefined;
-	material			= undefined
+	material			= undefined;
+	prim_type			= pr_trianglelist;
 	
 	final_matrix		= matrix_build_identity()
 	model_matrix		= matrix_build_identity()
@@ -11,12 +12,6 @@ function GPrimitive(_mesh = undefined) constructor {
 	transform_matrix	= matrix_build_identity()
 	
 	static Submit = function() {
-		static _tex_white			= sprite_get_texture(__spr_white, 0);
-		
-		static _tex_metal_rough		= sprite_get_texture(__spr_metal_rough, 0);
-		static _tex_normal			= sprite_get_texture(__spr_normal, 0);
-		static _tex_emissive		= sprite_get_texture(__spr_emissive, 0);
-		static _tex_occlusion		= sprite_get_texture(__spr_occlusion, 0);
 		
 		static _u_tex_metal_rough	= shader_get_sampler_index(__shd_passthrough, "u_tex_metal_rough");
 		static _u_tex_normal		= shader_get_sampler_index(__shd_passthrough, "u_tex_normal");
@@ -27,7 +22,10 @@ function GPrimitive(_mesh = undefined) constructor {
 		static _u_matl_met_rou_cut	= shader_get_uniform(__shd_passthrough, "u_matl_met_rou_cut");
 		
 		if (vbuffer != undefined) {
-			var _shader			= shader_current();
+			var _cache_defaults		= __gl_cache().defaults;
+			var _cache_textures		= __gl_cache().textures;
+			
+			var _shader				= shader_current();
 			
 			var _base_color_tex		= pointer_null;
 			var _metal_rough_tex	= pointer_null;
@@ -35,10 +33,10 @@ function GPrimitive(_mesh = undefined) constructor {
 			var _emissive_tex		= pointer_null;
 			var _occlusion_tex		= pointer_null;
 			
-			var _base_color_fac		= [1, 1, 1, 1];
-			var _metal_fac			= 0.0;
-			var _rough_fac			= 0.0;
-			var _cutoff				= 0.5;
+			var _base_color_fac		= _cache_defaults.color;
+			var _metal_fac			= _cache_defaults.metal;
+			var _rough_fac			= _cache_defaults.roughness;
+			var _cutoff				= _cache_defaults.alpha_cutoff;
 			
 
 			// Search for material data
@@ -57,15 +55,12 @@ function GPrimitive(_mesh = undefined) constructor {
 				}
 			}
 			
-			//show_debug_message(_metal_fac)
-			//show_debug_message(_rough_fac)
-			
 			// If data does not exists, use default values
-			_base_color_tex		??= _tex_white;
-			_metal_rough_tex	??= _tex_metal_rough;
-			_normal_tex			??= _tex_normal;
-			_emissive_tex		??= _tex_emissive;
-			_occlusion_tex		??= _tex_occlusion;
+			_base_color_tex		??= _cache_textures.base_color;
+			_metal_rough_tex	??= _cache_textures.metal_rough;
+			_normal_tex			??= _cache_textures.normal;
+			_emissive_tex		??= _cache_textures.emissive;
+			_occlusion_tex		??= _cache_textures.occlusion;
 
 			// Send textures
 			texture_set_stage(_u_tex_metal_rough, _metal_rough_tex);
@@ -78,9 +73,13 @@ function GPrimitive(_mesh = undefined) constructor {
 			shader_set_uniform_f_array(_u_matl_met_rou_cut, [_metal_fac, _rough_fac, _cutoff]);
 			
 			// Submit mesh
-			vertex_submit(vbuffer, pr_trianglelist, _base_color_tex);
+			vertex_submit(vbuffer, prim_type, _base_color_tex);
 		}
 		return self;
+	}
+	
+	static Render = function() {
+		
 	}
 	
 	static Freeze = function() {
