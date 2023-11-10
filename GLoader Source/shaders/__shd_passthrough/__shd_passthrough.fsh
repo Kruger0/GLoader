@@ -130,9 +130,9 @@ void main() {
 	
 	
 	// Debug
-	//final_col.rgb = v_texcoord.rgg;
+	final_col.rgb = v_texcoord.rgg;
 	//final_col.rgb = vec3(metal_fac);
-	//final_col.rgb = v_normal;
+	//final_col.rgb = v_normal*0.5+0.5;
 	//final_col.rgb = base_color	.rgb;
 	//final_col.rgb = normal		.rgb;
 	//final_col.rgb = metal_rough.rgb; // ta como occlusion

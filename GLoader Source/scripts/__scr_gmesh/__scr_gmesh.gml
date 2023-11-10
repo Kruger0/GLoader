@@ -24,7 +24,8 @@ function GMesh(_model = undefined) constructor {
 		// Update matrices - TODO: optmize static meshes and do some better caching
 		world_matrix		= matrix_get(matrix_world)
 		final_matrix		= matrix_multiply(model_matrix, world_matrix);
-		tinv_model_matrix	= mat_transpose(mat_invert_fast(final_matrix));
+		//show_message(final_matrix)
+		tinv_model_matrix	= mat_transpose(mat_invert(final_matrix));
 		
 		shader_set_uniform_f_array(_u_inv_model_mat, tinv_model_matrix);
 		

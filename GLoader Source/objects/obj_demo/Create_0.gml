@@ -33,7 +33,7 @@ var _files = [
 
 var _index = 17
 //model = new GModel().Load(_files[_index-2]+".glb").Freeze()
-model = new GModel().Load("2CylinderEngine.gltf").Freeze()
+model = new GModel().Load("sponza.gltf").Freeze()
 //model = new GModel().Load("SimpleSparseAccessor.gltf").Freeze()
 
 show_debug_overlay(true)

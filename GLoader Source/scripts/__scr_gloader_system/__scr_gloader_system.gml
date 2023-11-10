@@ -45,7 +45,6 @@ function __gl_cache() constructor {
 }
 
 
-
 function __gl_trace(_string) {
 	if (__gl_cache().trace) {
 		show_debug_message($"Gloader: {_string}")
@@ -201,7 +200,7 @@ function __gl_parse2json(_file) {
 						if (file_exists(_img_path)) {
 							_spr = sprite_add(_img_path, 1, false, false, 0, 0);
 						} else {
-							_spr = spr_white
+							_spr = __spr_white
 						}
 					}
 				}

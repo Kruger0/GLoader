@@ -118,7 +118,7 @@ function mat_invert(argument0) {
 
 	var _det = M[0] * inv[0] + M[1] * inv[4] + M[2] * inv[8] + M[3] * inv[12];
 	if ( _det == 0 ) {
-	    show_error( "The determinant is zero.", false );
+	    show_debug_message( "The determinant is zero.");
 	    return M;
 	}
 
