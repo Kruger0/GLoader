@@ -130,9 +130,9 @@ void main() {
 	
 	
 	// Debug
-	final_col.rgb = v_texcoord.rgg;
+	//final_col.rgb = vec3(v_texcoord.rg, 0.0);
 	//final_col.rgb = vec3(metal_fac);
-	//final_col.rgb = v_normal*0.5+0.5;
+	//final_col.rgb = normalize(v_normal);
 	//final_col.rgb = base_color	.rgb;
 	//final_col.rgb = normal		.rgb;
 	//final_col.rgb = metal_rough.rgb; // ta como occlusion
@@ -140,7 +140,6 @@ void main() {
 	//final_col.rgb = emissive.rgb; // ta como emissive
 	//final_col.rgb = vec3(rough_fac);
 	//final_col.rgb = u_matl_color.rgb;
-	
 	
 	
 	// Gamma decode

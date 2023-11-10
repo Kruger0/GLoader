@@ -178,7 +178,7 @@ function GModel(_name = "gmodel") constructor {
 													if !(is_undefined(_pbr)) {
 																	
 														// Base Color
-														var _tex_ref					= GET_HASH(_matl, __hash_baseColorTexture);
+														var _tex_ref					= GET_HASH(_pbr, __hash_baseColorTexture);
 														if (_tex_ref != undefined) {
 															_tex_id						= GET_HASH(_tex_ref, __hash_index)
 															_this_matl.base_color_tex	= sprite_get_texture(json_root.textures[_tex_id], 0);
@@ -196,7 +196,7 @@ function GModel(_name = "gmodel") constructor {
 														]
 																	
 														// Metallic Roughness																			
-														var _tex_ref					= GET_HASH(_matl, __hash_metallicRoughnessTexture);
+														var _tex_ref					= GET_HASH(_pbr, __hash_metallicRoughnessTexture);
 														if (_tex_ref != undefined) {
 															_tex_id						= GET_HASH(_tex_ref, __hash_index)
 															_this_matl.metal_rough_tex	= sprite_get_texture(json_root.textures[_tex_id], 0);
