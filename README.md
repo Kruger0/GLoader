@@ -12,6 +12,7 @@
 * Metallic, Roughness, Emissive and Occlusion maps
 * Vertex colors*
 * Local transformations
+* Sparse acessors
 * Object parenting transformations
 * Embbed and included file loading
 * Custom render engine
@@ -21,7 +22,6 @@
 ## Roadmap
 * Morphing targets
 * Basic animations
-* Sparse acessors
 * Skeletal animations
 * Auto generated normals
 * Auto generated tangents
