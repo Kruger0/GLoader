@@ -1,9 +1,11 @@
 {
-  "resourceType": "GMNotes",
-  "resourceVersion": "1.1",
-  "name": "DevNotes",
-  "parent": {
-    "name": "Notes",
-    "path": "folders/GLoader/Notes.yy",
+  "$GMNotes":"",
+  "%Name":"DevNotes",
+  "name":"DevNotes",
+  "parent":{
+    "name":"Notes",
+    "path":"folders/GLoader/Notes.yy",
   },
+  "resourceType":"GMNotes",
+  "resourceVersion":"2.0",
 }

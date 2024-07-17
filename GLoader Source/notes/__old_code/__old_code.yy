@@ -1,9 +1,11 @@
 {
-  "resourceType": "GMNotes",
-  "resourceVersion": "1.1",
-  "name": "__old_code",
-  "parent": {
-    "name": "Notes",
-    "path": "folders/GLoader/Notes.yy",
+  "$GMNotes":"",
+  "%Name":"__old_code",
+  "name":"__old_code",
+  "parent":{
+    "name":"Notes",
+    "path":"folders/GLoader/Notes.yy",
   },
+  "resourceType":"GMNotes",
+  "resourceVersion":"2.0",
 }

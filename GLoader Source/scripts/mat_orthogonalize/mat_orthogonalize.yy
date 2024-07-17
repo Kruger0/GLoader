@@ -1,11 +1,13 @@
 {
-  "resourceType": "GMScript",
-  "resourceVersion": "1.0",
-  "name": "mat_orthogonalize",
-  "isCompatibility": false,
-  "isDnD": false,
-  "parent": {
-    "name": "Snidrs",
-    "path": "folders/GLoader/Extensions - Will rearrange latter/Math/Matrix/Snidrs.yy",
+  "$GMScript":"v1",
+  "%Name":"mat_orthogonalize",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"mat_orthogonalize",
+  "parent":{
+    "name":"Snidrs",
+    "path":"folders/GLoader/Extensions - Will rearrange latter/Math/Matrix/Snidrs.yy",
   },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
 }

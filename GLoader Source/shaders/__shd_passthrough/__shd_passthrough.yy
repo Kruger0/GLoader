@@ -1,10 +1,12 @@
 {
-  "resourceType": "GMShader",
-  "resourceVersion": "1.0",
-  "name": "__shd_passthrough",
-  "parent": {
-    "name": "Shaders",
-    "path": "folders/GLoader/Shaders.yy",
+  "$GMShader":"",
+  "%Name":"__shd_passthrough",
+  "name":"__shd_passthrough",
+  "parent":{
+    "name":"Shaders",
+    "path":"folders/GLoader/Shaders.yy",
   },
-  "type": 1,
+  "resourceType":"GMShader",
+  "resourceVersion":"2.0",
+  "type":1,
 }
