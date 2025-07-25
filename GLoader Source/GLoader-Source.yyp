@@ -1,5 +1,5 @@
 {
-  "$GMProject":"",
+  "$GMProject":"v1",
   "%Name":"GLoader-Source",
   "AudioGroups":[
     {"$GMAudioGroup":"","%Name":"audiogroup_default","name":"audiogroup_default","resourceType":"GMAudioGroup","resourceVersion":"2.0","targets":-1,},
@@ -28,6 +28,7 @@
     {"$GMFolder":"","%Name":"Textures","folderPath":"folders/GLoader/Textures.yy","name":"Textures","resourceType":"GMFolder","resourceVersion":"2.0",},
     {"$GMFolder":"","%Name":"Default Materials","folderPath":"folders/GLoader/Textures/Default Materials.yy","name":"Default Materials","resourceType":"GMFolder","resourceVersion":"2.0",},
   ],
+  "ForcedPrefabProjectReferences":[],
   "IncludedFiles":[
     {"$GMIncludedFile":"","%Name":"2CylinderEngine.gltf","CopyToMask":-1,"filePath":"datafiles","name":"2CylinderEngine.gltf","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
     {"$GMIncludedFile":"","%Name":"algo.gltf","CopyToMask":-1,"filePath":"datafiles","name":"algo.gltf","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
@@ -210,7 +211,7 @@
   "isEcma":false,
   "LibraryEmitters":[],
   "MetaData":{
-    "IDEVersion":"2024.6.0.157",
+    "IDEVersion":"2024.13.1.193",
   },
   "name":"GLoader-Source",
   "resources":[
